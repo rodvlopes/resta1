@@ -1,10 +1,11 @@
+$: << "."
 require 'application'
 
-set :run, false
-set :environment, :production
-
-log = File.new("/var/log/sinatra.log", "a")
-$stdout.reopen(log)
-$stderr.reopen(log)
+# log = File.new("sinatra.log", "a")
+# log.sync = true
+# STDOUT.reopen(log)
+# STDERR.reopen(log)
 
 run Sinatra::Application
+
+#RACK_ENV env must be set on production envioment
