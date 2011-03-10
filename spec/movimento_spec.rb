@@ -1,7 +1,7 @@
 # coding: utf-8
 require 'spec_helper'
 
-describe Movimento do
+describe Movimentos do
   after do
     apagar_movimentos_txt
   end
@@ -9,33 +9,36 @@ describe Movimento do
   context "caixa branca" do
   
     it "deve ler um movimento contido no arquivo de movimentos passado na inicialização" do
-      criar_movimentos_txt "1A: 01 02"
-      movimento = Movimento.new 'movimentos.txt'
-      movimento['1A'].should == ['01', '02']
+      criar_movimentos_txt "01 02"
+      movimentos = Movimentos.new 'movimentos.txt'
+      movimentos.valido?('0102').should be_true
+      movimentos.valido?('0402').should be_false
     end
     
     it "deve ler uma lista contida no arquivo de movimentos passado na inicialização" do
       criar_movimentos_txt <<EOS
-1A: 01 02
-2A: 11 22
-0G: 03 92
+01 02
+11 22
+03 92
 EOS
-      movimento = Movimento.new 'movimentos.txt'
-      movimento['1A'].should == ['01', '02']
-      movimento['2A'].should == ['11', '22']
-      movimento['0G'].should == ['03', '92']
+      movimentos = Movimentos.new 'movimentos.txt'
+      movimentos.valido?('0102').should be_true
+      movimentos.valido?('1122').should be_true
+      movimentos.valido?('0392').should be_true
+      movimentos.valido?('3333').should be_false
     end
     
     it "deve ler uma lista com diferentes espaçamentos" do
       criar_movimentos_txt <<EOS
-  1A:0102
-  2A      : 11 22
-0G: 03    92
+  0102
+          11 22
+03    92
 EOS
-      movimento = Movimento.new 'movimentos.txt'
-      movimento['1A'].should == ['01', '02']
-      movimento['2A'].should == ['11', '22']
-      movimento['0G'].should == ['03', '92']
+      movimentos = Movimentos.new 'movimentos.txt'
+      movimentos.valido?('0102').should be_true
+      movimentos.valido?('1122').should be_true
+      movimentos.valido?('0392').should be_true
+      movimentos.valido?('3333').should be_false
     end
   
     it "deve aceitar um arquivo com linhas que não sejam movimentos" do
@@ -45,53 +48,29 @@ Falhou
    00
 00 11 00
    00      
-1A:0102
-2A: 11 22
-0G: 03    92
+0102
+11 22
+03    92
 
 Teste 00 : Teste
 EOS
-      movimento = Movimento.new 'movimentos.txt'
-      movimento['1A'].should == ['01', '02']
-      movimento['2A'].should == ['11', '22']
-      movimento['0G'].should == ['03', '92']
-      movimento.length.should == 3
-      movimento.size.should   == 3
+      movimentos = Movimentos.new 'movimentos.txt'
+      movimentos.valido?('0102').should be_true
+      movimentos.valido?('1122').should be_true
+      movimentos.valido?('0392').should be_true
+      movimentos.valido?('0011').should be_false
+      movimentos.length.should == 3
+      movimentos.size.should   == 3
     end
   end
   
   
   context "validação real" do
 
-    it "os quadrantes 1,2,4,5 devem conter o mesmo número de movimentos" do
-      movimento = Movimento.new 'doc/movimentos.txt'
-      c1, c2, c4, c5 = 0, 0, 0, 0
-      movimento.keys.each do |k|
-        c1 =+ 1 if k =~ /1./
-        c2 =+ 1 if k =~ /2./
-        c4 =+ 1 if k =~ /4./
-        c5 =+ 1 if k =~ /5./
-      end
-
-      c1.should > 0
-      c1.should == c2
-      c2.should == c4
-      c4.should == c5
-    end
-     
     it "para todo movimento de-para deve existir um movimento para-de" do
-      movimento = Movimento.new 'doc/movimentos.txt'
-      movimento.each do |k, m|
-        outro_m = [m.para, m.de]
-        encontrei = false
-        movimento.values.each {|m2| 
-          if m2 == outro_m
-            encontrei = true
-            break
-          end
-        }
-        encontrei.should be_true
-      end
+      movimentos = Movimentos.new 'doc/movimentos.txt'
+      movimentos.length.should > 0
+      movimentos.each { |m| movimentos.valido?([m.para, m.de]).should be_true }
     end
 
  end

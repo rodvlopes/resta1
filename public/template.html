@@ -2,51 +2,48 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>ArchiteXture</title>
-	<link rel="stylesheet" href="styles.css" type="text/css" media="screen" />
-	<link rel="stylesheet" type="text/css" href="print.css" media="print" />
-	<!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<title>Resta 1 - Algoritmo Genético</title>
+	<link rel="stylesheet" href="css/styles.css" type="text/css" media="screen" />
+	<script type="text/javascript" src="js/jquery-1.4.4.min.js"></script>
+	<script type="text/javascript" src="js/jquery-ui-1.8.10.custom.min.js"></script>
+	<script type="text/javascript" src="js/application.js"></script>
 </head>
 <body>
 <div id="wrapper"><!-- #wrapper -->
 
-	<nav><!-- top nav -->
+	<nav>
 		<div class="menu">
 			<ul>
 				<li><a href="#">Home</a></li>
-				<li><a href="#">About</a></li>
-				<li><a href="#">Products</a></li>
-				<li><a href="#">Services</a></li>
-				<li><a href="#">Locations</a></li>
-				<li><a href="#">Contact Us</a></li>
 			</ul>
 		</div>
-	</nav><!-- end of top nav -->
+	</nav>
 	
-	<header><!-- header -->
-		<div id="plandesign"><img src="images/plans.png" alt="" /></div>
-		<h1><a href="#">ArchiteXture</a></h1>
-		<p>Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc.</p>
-	</header><!-- end of header -->
+	<header>
+		<div id="plandesign"><img src="images/peg_solitaire.gif" alt="" /></div>
+		<h1><a href="#">Resta 1 - Algoritmo Genético</a></h1>
+		<p><strong>Resta um</strong> é um quebra-cabeça no qual o objetivo é, através de movimentos válidos, deixar apenas uma peça no tabuleiro.</p>
+		<p><strong>A proposta</strong> deste trabalho é apresentar uma solução usando a algoritmo genético para este quebra-cabeça.</p>
+	</header>
 	
-	<section id="main"><!-- #main content and sidebar area -->
-			<section id="content"><!-- #content -->
+	<section id="main">
+		<section id="content">
 			
-        		<article>
-							<h2><a href="#">First Article Title</a></h2>
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla.</p>
-						</article>
-						
-        		<article>
-							<h2><a href="#">Second Article Title</a></h2>
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc.</p>
-							<p>Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</p>
-							<p>Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</p>
-						</article>
-						
-			</section><!-- end of #content -->
+			<table id="game">
+				<tr>
+					<td><div class="peca" /></td>
+					<td><div class="peca" /></td>
+					<td><div class="peca" /></td>
+					<td><div class="peca" /></td>
+					<td><div class="peca" /></td>
+					<td><div class="peca" /></td>
+					<td><div class="peca" /></td>
+				</tr>
+			</table>
+		
+		</section>
 
-		<aside id="sidebar"><!-- sidebar -->
+		<aside id="sidebar">
 				<h3>Things To Do</h3>
 					<ul>
 						<li><a href="#">Play Games and Network</a></li>
@@ -66,9 +63,9 @@
 						<li><a href="#">Facebook</a></li>
 					</ul>
 
-		</aside><!-- end of sidebar -->
+		</aside>
 
-	</section><!-- end of #main content and sidebar-->
+	</section>
 	
 		<footer>
 		<section id="footer-area">
@@ -81,7 +78,7 @@
 									<li><a href="#">two linkylinks</a></li>
 									<li><a href="#">three linkylinks</a></li>
 								</ul>
-					</aside><!-- end of #first footer segment -->
+					</aside>
 
 					<aside class="footer-segment">
 							<h4>Awesome Stuff</h4>
@@ -90,7 +87,7 @@
 									<li><a href="#">two linkylinks</a></li>
 									<li><a href="#">three linkylinks</a></li>
 								</ul>
-					</aside><!-- end of #second footer segment -->
+					</aside>
 
 					<aside class="footer-segment">
 							<h4>Coolness</h4>
@@ -99,19 +96,19 @@
 									<li><a href="#">two linkylinks</a></li>
 									<li><a href="#">three linkylinks</a></li>
 								</ul>
-					</aside><!-- end of #third footer segment -->
+					</aside>
 					
 					<aside class="footer-segment">
 							<h4>Blahdyblah</h4>
 								<p>Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
-					</aside><!-- end of #fourth footer segment -->
+					</aside>
 
-			</section><!-- end of footer-outer-block -->
+			</section>
 
-		</section><!-- end of footer-area -->
+		</section>
 	</footer>
 	
-</div><!-- #wrapper -->
-<!-- Free template created by http://freehtml5templates.com -->
+</div>
+
 </body>
 </html>
