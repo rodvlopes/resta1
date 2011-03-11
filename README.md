@@ -1,22 +1,23 @@
-Minimal Sinatra Sample Application
+Resta 1 Algorítimo Genético
 ==================================
 
-You can start a Sinatra application from here.
+Descrição
 ----------------------------------------------
 
-It comes with a config.ru that makes compatible with rack. 
-So you can deploy it into any webserver rack compatible
-like Apache and Nginx.
+O objetivo deste trabalho é escrever uma solução via algorítmo genético
+para resolver o problema do jogo Resta 1.
 
 Features
 --------
 
-- config.ru to deploy inside apache/nginx
-- views using erb
-- partials and layout use examples
-- tmp/restart.txt to be touched
+- Resta 1 em javascript
+- Algorítimo Genético em Ruby
 
-Requirements
-------------
 
-- Sinatra only! 
+Instalação
+----------
+
+1. Clonar o repositório, ter o ruby instalado e o bundler;
+2. Rodar o bundler para instalar as gems;
+3. Subir o servidor com o comando _rackup_;
+4. Acessar localhost:9292.
