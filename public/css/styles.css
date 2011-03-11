@@ -264,6 +264,10 @@ margin-top: -15px;
 	height: 80px;
 }
 
+#game td.highlight {
+	border-color: red;
+}
+
 #game .peca {
 	background-color: green;
 	width: 100%;
