@@ -1,4 +1,5 @@
 $: << "."
+$: << "lib"
 require 'application'
 
 # log = File.new("sinatra.log", "a")

@@ -13,7 +13,7 @@ describe("Resta1.Movimentos", function() {
 	    expect(movimento).toEqual(['1', '2', '3']);
 	  });
 	
-	  it("deve retornar false quando não encontrar um movimento com um de,para ", function() {
+	  it("deve retornar false quando não encontrar um movimento dado de,para ", function() {
 			movimento = movimentos.ehValido('3', '3');
 	    expect(movimento).toBeFalsy();
 	  });

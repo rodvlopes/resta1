@@ -35,7 +35,7 @@ nav {
 width: 940px;
 height: 69px;
 margin: 0 auto;
-background: #1F4677 url(images/blueprintpaper.png) repeat-x;
+background: #1F4677 url(/images/blueprintpaper.png) repeat-x;
 }
 
 header {
@@ -252,23 +252,27 @@ footer p {
 margin-top: -15px;
 }
 
-/*GAME*/
-#game {
+/*tabuleiro*/
+#tabuleiro {
 	border: 1px dashed black;
 	margin-top: 20px;
 	width: 100%;
 }
 
-#game td {
+#tabuleiro td {
 	border: 1px solid black;
 	height: 80px;
 }
 
-#game td.highlight {
+#tabuleiro td.highlight {
 	border-color: red;
 }
 
-#game .peca {
+#tabuleiro td.shore {
+	border: none;
+}
+
+#tabuleiro .peca {
 	background-color: green;
 	width: 100%;
 	height: 100%;
