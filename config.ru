@@ -1,6 +1,4 @@
-$: << "."
-$: << "lib"
-require 'application'
+require './application'
 
 # log = File.new("sinatra.log", "a")
 # log.sync = true

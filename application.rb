@@ -1,7 +1,10 @@
+# coding: utf-8
+$: << "."
 require 'rubygems'
+require "bundler/setup"
 require 'sinatra'
-require 'movimento'
-require 'helpers'
+require 'lib/movimento'
+require 'lib/helpers'
 require 'json'
 
 # root page
