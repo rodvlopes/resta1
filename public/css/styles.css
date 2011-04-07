@@ -64,6 +64,7 @@ margin-right: 30px;
 float: left;
 padding-left: 20px;
 width: 270px;
+height: 640px;
 background: #fff;
 border-right: 4px #1F4677 solid;
 }
@@ -281,4 +282,13 @@ margin-top: -15px;
 	margin: 0	px;
 	width: 100%;
 	height: 100%;
+}
+
+/*outros*/
+#pontuacao {
+	color: #999;
+	letter-spacing: 10px;
+	font-family: monospace;
+	font-size: 69px;
+	font-weight: bolder;
 }
