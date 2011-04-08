@@ -1,7 +1,7 @@
 # coding: utf-8
 class Movimentos < Array
   def initialize(moves_file)
-    File.open(moves_file).each_line do |line|
+    File.open(moves_file, :encoding => 'UTF-8').each_line do |line|
       move = extrair_de_para(line)
       self.push(move) unless move.nil?
     end
