@@ -13,4 +13,9 @@ $(document).ready(function(){
 		$(this).text(novoValor);
 	});
 	
+	//binds
+	$('#reiniciar-btn').click(function() {
+		tabuleiro.reiniciar();
+	});
+	
 });

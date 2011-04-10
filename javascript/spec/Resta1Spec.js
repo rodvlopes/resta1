@@ -37,14 +37,18 @@ describe("Resta1.Tabuleiro", function() {
 		<div id="fixture">\
 			<table id="tabuleiro">\
 				<tr>\
-					<td data-spot="1"><div class="peca" /></td>\
-					<td data-spot="2"><div class="peca" /></td>\
-					<td data-spot="3"></td>\
-					</tr>\
+					<td class="shore"></td>\
+					<td class="spot" data-spot="1"><div class="peca" /></td>\
+					<td class="spot" data-spot="2"><div class="peca" /></td>\
+					<td class="spot" data-spot="3"></td>\
+					<td class="shore"></td>\
+				</tr>\
 				<tr>\
-					<td data-spot="4"><div class="peca" /></td>\
-					<td data-spot="5"><div class="peca" /></td>\
-					<td data-spot="6"></td>\
+					<td class="shore"></td>\
+					<td class="spot" data-spot="4"><div class="peca" /></td>\
+					<td class="spot" data-spot="5"><div class="peca" /></td>\
+					<td class="spot" data-spot="6"></td>\
+					<td class="shore"></td>\
 				</tr>\
 			</table>\
 			<span id="contador"></span>\
@@ -75,15 +79,36 @@ describe("Resta1.Tabuleiro", function() {
 	
 	
 	describe('Evento:totalDePecasAlterado', function() {
-		it("sempre que uma peça sair do tabuleiro, devo disparar o evento", function() {
+		it("devo disparar o evento sempre que uma peça sair do tabuleiro", function() {
 			$("#contador").bind('totalDePecasAlterado', function(event, novoValor){
-				console.log(novoValor);
 				$(this).text(novoValor);
 			});
-			tabuleiro.executar(['1', '2', '3']);
+			var $elemDragged = $('td[data-spot="1"]');
+			var $elemDrop    = $('td[data-spot="3"]');
+			tabuleiro.executar(['1', '2', '3'], $elemDragged, $elemDrop);
 			waitsFor(function(){return $("#contador").text() == '3'}, 'O evento não foi emitido ou foi com o valor errado!', 200);
 	  });
 	});
+	
+	
+	describe('reiniciar', function() {
+		it("deve voltar para o estado inicial do tabuleiro", function() {
+			var $elemDragged = $('td[data-spot="1"]');
+			var $elemDrop    = $('td[data-spot="3"]');
+			tabuleiro.executar(['1', '2', '3'], $elemDragged, $elemDrop);
+			
+			$elemDragged = $('td[data-spot="4"]');
+			$elemDrop    = $('td[data-spot="6"]');
+			tabuleiro.executar(['4', '5', '6'], $elemDragged, $elemDrop);
+			
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(false);
+			tabuleiro.reiniciar();
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(true);
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(true);
+	  });
+	});
+	
 	
 }); //describe Tabuleiro
 
