@@ -1,3 +1,6 @@
+//TODO: Refatorar o esquema de eventos. Novo Evento: reiniciar.
+//TODO: A resposabilidade do contador deve ser do próprio componente.
+
 describe("Resta1.Movimentos", function() {
   var movimentos;
 
@@ -52,6 +55,7 @@ describe("Resta1.Tabuleiro", function() {
 				</tr>\
 			</table>\
 			<span id="contador"></span>\
+			<div id="movimentos"></div>\
 		</div>\
 		');
 
@@ -83,9 +87,7 @@ describe("Resta1.Tabuleiro", function() {
 			$("#contador").bind('totalDePecasAlterado', function(event, novoValor){
 				$(this).text(novoValor);
 			});
-			var $elemDragged = $('td[data-spot="1"]');
-			var $elemDrop    = $('td[data-spot="3"]');
-			tabuleiro.executar(['1', '2', '3'], $elemDragged, $elemDrop);
+			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
 			waitsFor(function(){return $("#contador").text() == '3'}, 'O evento não foi emitido ou foi com o valor errado!', 200);
 	  });
 	});
@@ -93,14 +95,8 @@ describe("Resta1.Tabuleiro", function() {
 	
 	describe('reiniciar', function() {
 		it("deve voltar para o estado inicial do tabuleiro", function() {
-			var $elemDragged = $('td[data-spot="1"]');
-			var $elemDrop    = $('td[data-spot="3"]');
-			tabuleiro.executar(['1', '2', '3'], $elemDragged, $elemDrop);
-			
-			$elemDragged = $('td[data-spot="4"]');
-			$elemDrop    = $('td[data-spot="6"]');
-			tabuleiro.executar(['4', '5', '6'], $elemDragged, $elemDrop);
-			
+			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
+			SpecHelper.executarMovimento(tabuleiro, ['4', '5', '6']);
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(false);
 			tabuleiro.reiniciar();
@@ -109,6 +105,25 @@ describe("Resta1.Tabuleiro", function() {
 	  });
 	});
 	
+	describe('lista de movimentos', function() {
+		beforeEach(function(){
+			tabuleiro = new Resta1.Tabuleiro({id : 'tabuleiro', movimentos : movimentos, listaMovimentosId : 'movimentos'});
+		});
+		
+		it("deve adicionar uma ul vazia quando receber o parâmetro listaMovimentosId", function() {
+			expect( $('#movimentos ul').length ).toEqual(1);
+	  });
+	
+		it("deve adicionar o movimento na lista após uma execução", function() {
+			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
+			waitsFor(function(){
+				return (
+					$('#movimentos ul li').length == 1 &&
+					$('#movimentos ul li:first').html() == "1&gt;3"
+				);
+			}, 'li ser adicionada na lista de movimentos', 200);
+	  });
+	});
+	
 	
 }); //describe Tabuleiro
-

@@ -6,7 +6,8 @@ $(document).ready(function(){
 	tabuleiro  = new Resta1.Tabuleiro({
 		id : 'tabuleiro', 
 		movimentos : movimentos,
-		contador : 'pontuacao'
+		contadorId : 'pontuacao',
+		listaMovimentosId : 'movimentos'
 	});
 	
 	$('#pontuacao').bind('totalDePecasAlterado', function(event, novoValor) {

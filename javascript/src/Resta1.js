@@ -30,7 +30,15 @@ var Resta1 = {
 	
 	/*##################################################*/
 	/*############         TABULEIRO          ##########*/
-	
+	//
+	//params {
+	//  id 						: id da tabela que representa o tabuleiro do jogo.
+	//	movimentos 		: instância de Movimentos.
+	//	contadorId  	: [opcional] id do elemento que vai receber
+	//                	o evento totalDePecasAlterado.
+	//	listaMovimentosId : Id do elemento onde será adicionado a lista 
+	//											de movimentações que foram executadas.
+	//}
 	Tabuleiro : function(params) {
 		var self = this;
 		
@@ -45,7 +53,7 @@ var Resta1 = {
 			if (!self._movimentos) console.log('Erro: Tabuleiro precisa regras de movimento para funcionar!');
 		
 			self._contador = 'contador';
-			if (params['contador']) self._contador = params['contador'];
+			if (params['contadorId']) self._contador = params['contadorId'];
 			self._$contador = $("#"+self._contador);
 	
 			self._estadoInicial = [];
@@ -53,6 +61,14 @@ var Resta1 = {
 				var spot = $(this).parent().get(0).getAttribute('data-spot');
 				self._estadoInicial.push(spot) ;
 			});
+			
+			if (params['listaMovimentosId']) {
+				self._listaMovimentosId = params['listaMovimentosId'];
+				$("#"+self._listaMovimentosId).append('<ul></ul>');
+				self._$listaMovimentos = $("#"+self._listaMovimentosId+" ul");
+				self._$listaMovimentos.bind('totalDePecasAlterado', self.listaMovimentosAdicionar);
+			}
+			
 		
 			self.tornarPecasDraggables();
 			self.tonarSpotsDroppables();
@@ -98,15 +114,18 @@ var Resta1 = {
 			self._$tabuleiro.find('td[data-spot="'+meioSpot+'"]').children()
 				.fadeOut(function(){
 					$(this).remove();
-					self.emitirTotalDePecasAlterado();
+					self.emitirTotalDePecasAlterado(movimento);
 				});
-				
+			
 			$elemDrop.append($elemDragged.css('top','0').css('left', '0'));
 		};
 		
-		this.emitirTotalDePecasAlterado = function() {
+		this.emitirTotalDePecasAlterado = function(movimento) {
 			var totalPecas = self._$tabuleiro.find('.peca').length;
-			self._$contador.trigger('totalDePecasAlterado', [totalPecas]);
+			self._$contador.trigger('totalDePecasAlterado', [totalPecas, movimento]);
+			
+			if (self._listaMovimentosId)
+				self._$listaMovimentos.trigger('totalDePecasAlterado', [totalPecas, movimento]);
 		};
 		
 		this.movimentoPossivelNoEstadoAtual = function (de, para) {
@@ -133,6 +152,10 @@ var Resta1 = {
 			
 			self.tornarPecasDraggables();
 			self.emitirTotalDePecasAlterado();
+		};
+		
+		this.listaMovimentosAdicionar = function(event, total, movimento) {
+			self._$listaMovimentos.append('<li>'+movimento[0]+'>'+movimento[2]+'</li>');
 		};
 		
 		self._inicializar();
