@@ -45,6 +45,8 @@ var Resta1 = {
 		
 		//Inicializar
 		this._inicializar = function() {
+			self._pecaSnippet = '<div class="peca ui-draggable" style="position: relative;"></div>';
+			
 			self._id = params['id'];
 			self._$tabuleiro = $("#"+self._id);
 			if (self._$tabuleiro.length != 1) console.log('Erro: Tabuleiro não encontrado!');
@@ -67,6 +69,14 @@ var Resta1 = {
 				$("#"+self._listaMovimentosId).append('<ul></ul>');
 				self._$listaMovimentos = $("#"+self._listaMovimentosId+" ul");
 				self._$listaMovimentos.bind('totalDePecasAlterado', self.listaMovimentosAdicionar);
+				self._$listaMovimentos.find('li').live('mouseover', function(){
+					$(this).addClass('para-remover');
+					self._$listaMovimentos.find('li:gt('+$(this).index()+')').addClass('para-remover');
+				});
+				self._$listaMovimentos.find('li').live('click', self.desfazerMovimentosSelecionados);
+				self._$listaMovimentos.bind('mouseout', function(){
+					$(this).find('li').removeClass('para-remover');
+				});
 			}
 			
 		
@@ -120,6 +130,13 @@ var Resta1 = {
 			$elemDrop.append($elemDragged.css('top','0').css('left', '0'));
 		};
 		
+		this.reverter = function(movimento) {
+			self._$tabuleiro.find('td[data-spot="'+movimento[1]+'"]').append(self._pecaSnippet);
+			self._$tabuleiro.find('td[data-spot="'+movimento[0]+'"]').append(
+				self._$tabuleiro.find('td[data-spot="'+movimento[2]+'"]').children()
+			);
+		};
+		
 		this.emitirTotalDePecasAlterado = function(movimento) {
 			var totalPecas = self._$tabuleiro.find('.peca').length;
 			self._$contador.trigger('totalDePecasAlterado', [totalPecas, movimento]);
@@ -151,11 +168,27 @@ var Resta1 = {
 			});
 			
 			self.tornarPecasDraggables();
-			self.emitirTotalDePecasAlterado();
+			self.emitirTotalDePecasAlterado(null);
 		};
 		
 		this.listaMovimentosAdicionar = function(event, total, movimento) {
-			self._$listaMovimentos.append('<li>'+movimento[0]+'>'+movimento[2]+'</li>');
+			//refatorar
+			if (movimento)
+				self._$listaMovimentos.append('<li>'+movimento[0]+'>'+movimento[2]+'</li>');
+			else
+				self._$listaMovimentos.html('');
+		};
+		
+		this.desfazerMovimentosSelecionados = function() {
+			var movimentosParaDesfazer = $(self._$listaMovimentos.find('.para-remover').get().reverse());
+			movimentosParaDesfazer.each(function(){
+				var mSplit = this.innerHTML.split('&gt;');
+				var movimento = self._movimentos.ehValido(mSplit[0],mSplit[1]);
+				self.reverter(movimento);
+				$(this).remove();
+			});
+			
+			self.emitirTotalDePecasAlterado(null);
 		};
 		
 		self._inicializar();

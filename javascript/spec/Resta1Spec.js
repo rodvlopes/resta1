@@ -59,7 +59,7 @@ describe("Resta1.Tabuleiro", function() {
 		</div>\
 		');
 
-		tabuleiro = new Resta1.Tabuleiro({id : 'tabuleiro', movimentos : movimentos});
+		tabuleiro = new Resta1.Tabuleiro({id : 'tabuleiro', movimentos : movimentos, listaMovimentosId : 'movimentos'});
   });
 
 	it("deve tornar as peças draggables", function() {
@@ -103,13 +103,16 @@ describe("Resta1.Tabuleiro", function() {
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(true);
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(true);
 	  });
+	
+		it("deve limpar a lista de movimentos", function() {
+			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
+			expect( $('#movimentos ul li').length ).toEqual(1);
+			tabuleiro.reiniciar();
+			expect( $('#movimentos ul li').length ).toEqual(0);
+	  });
 	});
 	
 	describe('lista de movimentos', function() {
-		beforeEach(function(){
-			tabuleiro = new Resta1.Tabuleiro({id : 'tabuleiro', movimentos : movimentos, listaMovimentosId : 'movimentos'});
-		});
-		
 		it("deve adicionar uma ul vazia quando receber o parâmetro listaMovimentosId", function() {
 			expect( $('#movimentos ul').length ).toEqual(1);
 	  });
@@ -122,6 +125,29 @@ describe("Resta1.Tabuleiro", function() {
 					$('#movimentos ul li:first').html() == "1&gt;3"
 				);
 			}, 'li ser adicionada na lista de movimentos', 200);
+	  });
+	});
+	
+
+	describe('desfazerMovimentosSelecionados', function() {
+		beforeEach(function() {
+			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
+			SpecHelper.executarMovimento(tabuleiro, ['4', '5', '6']);
+			tabuleiro._$listaMovimentos.find('li:last').addClass('para-remover');
+			tabuleiro.desfazerMovimentosSelecionados();
+		});
+		
+		it("deve desfazer a lista de movimentos selecionados", function() {
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(true);
+	  });		
+		
+		it("deve retirar os passos da lista de movimentos", function() {
+			expect( tabuleiro._$listaMovimentos.find('li:last').html() ).toEqual("1&gt;3");
+	  });
+	
+		it("deve atualizar o contador", function() {
+			expect( tabuleiro._$contador.html() ).toEqual("3");
 	  });
 	});
 	

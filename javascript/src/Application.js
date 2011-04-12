@@ -20,3 +20,5 @@ $(document).ready(function(){
 	});
 	
 });
+
+if (!console) {console ={log : function(){}}};
