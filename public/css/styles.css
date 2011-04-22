@@ -278,6 +278,7 @@ margin-top: -15px;
 #tabuleiro .peca {
 	background-color: green;
 	border-radius: 15px;
+	cursor: move;
 	-moz-border-radius: 15px;
 	margin: 0	px;
 	width: 100%;

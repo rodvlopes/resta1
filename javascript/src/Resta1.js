@@ -188,6 +188,7 @@ var Resta1 = {
 				$(this).remove();
 			});
 			
+			self.tornarPecasDraggables();
 			self.emitirTotalDePecasAlterado(null);
 		};
 		
