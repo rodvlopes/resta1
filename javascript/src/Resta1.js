@@ -54,21 +54,20 @@ var Resta1 = {
 			self._movimentos = params['movimentos'];
 			if (!self._movimentos) console.log('Erro: Tabuleiro precisa regras de movimento para funcionar!');
 		
-			self._contador = 'contador';
-			if (params['contadorId']) self._contador = params['contadorId'];
-			self._$contador = $("#"+self._contador);
+			if (params['contadorId']) {
+				self._contador = params['contadorId'];
+				self._$contador = $("#"+self._contador);
+				$(self).bind('totalDePecasAlterado', function(event, novoValor) {
+					self._$contador.text(novoValor);
+				});
+			}
 	
-			self._estadoInicial = [];
-			self._$tabuleiro.find('.peca').each(function(){ 
-				var spot = $(this).parent().get(0).getAttribute('data-spot');
-				self._estadoInicial.push(spot) ;
-			});
-			
 			if (params['listaMovimentosId']) {
 				self._listaMovimentosId = params['listaMovimentosId'];
 				$("#"+self._listaMovimentosId).append('<ul></ul>');
 				self._$listaMovimentos = $("#"+self._listaMovimentosId+" ul");
-				self._$listaMovimentos.bind('totalDePecasAlterado', self.listaMovimentosAdicionar);
+				$(self).bind('pecaComida', self.listaMovimentosAdicionar);
+				$(self).bind('jogoReiniciado', function() {self._$listaMovimentos.html('');});
 				self._$listaMovimentos.find('li').live('mouseover', function(){
 					$(this).addClass('para-remover');
 					self._$listaMovimentos.find('li:gt('+$(this).index()+')').addClass('para-remover');
@@ -78,6 +77,12 @@ var Resta1 = {
 					$(this).find('li').removeClass('para-remover');
 				});
 			}
+			
+			self._estadoInicial = [];
+			self._$tabuleiro.find('.peca').each(function(){ 
+				var spot = $(this).parent().get(0).getAttribute('data-spot');
+				self._estadoInicial.push(spot) ;
+			});
 			
 		
 			self.tornarPecasDraggables();
@@ -124,7 +129,7 @@ var Resta1 = {
 			self._$tabuleiro.find('td[data-spot="'+meioSpot+'"]').children()
 				.fadeOut(function(){
 					$(this).remove();
-					self.emitirTotalDePecasAlterado(movimento);
+					self.eventos.emitirPecaComida(movimento);
 				});
 			
 			$elemDrop.append($elemDragged.css('top','0').css('left', '0'));
@@ -135,14 +140,6 @@ var Resta1 = {
 			self._$tabuleiro.find('td[data-spot="'+movimento[0]+'"]').append(
 				self._$tabuleiro.find('td[data-spot="'+movimento[2]+'"]').children()
 			);
-		};
-		
-		this.emitirTotalDePecasAlterado = function(movimento) {
-			var totalPecas = self._$tabuleiro.find('.peca').length;
-			self._$contador.trigger('totalDePecasAlterado', [totalPecas, movimento]);
-			
-			if (self._listaMovimentosId)
-				self._$listaMovimentos.trigger('totalDePecasAlterado', [totalPecas, movimento]);
 		};
 		
 		this.movimentoPossivelNoEstadoAtual = function (de, para) {
@@ -168,15 +165,11 @@ var Resta1 = {
 			});
 			
 			self.tornarPecasDraggables();
-			self.emitirTotalDePecasAlterado(null);
+			self.eventos.emitirJogoReiniciado();
 		};
 		
-		this.listaMovimentosAdicionar = function(event, total, movimento) {
-			//refatorar
-			if (movimento)
+		this.listaMovimentosAdicionar = function(event, movimento) {
 				self._$listaMovimentos.append('<li>'+movimento[0]+'>'+movimento[2]+'</li>');
-			else
-				self._$listaMovimentos.html('');
 		};
 		
 		this.desfazerMovimentosSelecionados = function() {
@@ -189,7 +182,27 @@ var Resta1 = {
 			});
 			
 			self.tornarPecasDraggables();
-			self.emitirTotalDePecasAlterado(null);
+			self.eventos.emitirTotalDePecasAlterado();
+		};
+		
+		// *** EVENTOS *** //
+		this.eventos = {
+			emitirTotalDePecasAlterado : function() {
+				var totalPecas = self._$tabuleiro.find('.peca').length;
+				$(self).trigger('totalDePecasAlterado', [totalPecas]);
+			},
+			
+			emitirPecaComida : function(movimento) {
+				$(self).trigger('pecaComida', [movimento]);
+				
+				self.eventos.emitirTotalDePecasAlterado();
+			},
+			
+			emitirJogoReiniciado : function() {
+					$(self).trigger('jogoReiniciado');
+					
+					self.eventos.emitirTotalDePecasAlterado();
+			}
 		};
 		
 		self._inicializar();

@@ -1,5 +1,5 @@
-//TODO: Refatorar o esquema de eventos. Novo Evento: reiniciar.
-//TODO: A resposabilidade do contador deve ser do próprio componente.
+//TOOD: Tirar a lista de movimentos do backend
+//TODO: Colocar o html do tabuleiro como sendo o default do componente (trazer para dentro)
 
 describe("Resta1.Movimentos", function() {
   var movimentos;
@@ -59,7 +59,7 @@ describe("Resta1.Tabuleiro", function() {
 		</div>\
 		');
 
-		tabuleiro = new Resta1.Tabuleiro({id : 'tabuleiro', movimentos : movimentos, listaMovimentosId : 'movimentos'});
+		tabuleiro = new Resta1.Tabuleiro({id : 'tabuleiro', movimentos : movimentos, contadorId : 'contador', listaMovimentosId : 'movimentos'});
   });
 
 	it("deve tornar as peças draggables", function() {
@@ -82,13 +82,22 @@ describe("Resta1.Tabuleiro", function() {
 	});
 	
 	
-	describe('Evento:totalDePecasAlterado', function() {
-		it("devo disparar o evento sempre que uma peça sair do tabuleiro", function() {
-			$("#contador").bind('totalDePecasAlterado', function(event, novoValor){
-				$(this).text(novoValor);
+	describe('Ao comer uma peça', function() {
+		it("devo disparar o evento totalDePecasAlterado", function() {
+			$(tabuleiro).bind('totalDePecasAlterado', function(event, novoValor){
+				tabuleiro._$contador.text(novoValor);
 			});
 			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
-			waitsFor(function(){return $("#contador").text() == '3'}, 'O evento não foi emitido ou foi com o valor errado!', 200);
+			waitsFor(function(){return tabuleiro._$contador.text() == '3'}, 'O evento não foi emitido ou foi com o valor errado!', 200);
+	  });
+	
+		it("devo disparar o evento pecaComida com o movimento", function() {
+			var movimento = [0,0,0];
+			$(tabuleiro).bind('pecaComida', function(event, m){
+				movimento = m;
+			});
+			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
+			waitsFor(function(){return movimento[0] == '1' && movimento[2] == '3'}, 'O evento não foi emitido ou foi com o valor errado!', 200);
 	  });
 	});
 	
@@ -104,25 +113,34 @@ describe("Resta1.Tabuleiro", function() {
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(true);
 	  });
 	
-		it("deve limpar a lista de movimentos", function() {
-			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
-			expect( $('#movimentos ul li').length ).toEqual(1);
+		it("deve lançar o evento jogoReiniciado", function() {
+			var reiniciado = false;
+			$(tabuleiro).bind('jogoReiniciado', function(event){
+				reiniciado = true;
+			});
 			tabuleiro.reiniciar();
-			expect( $('#movimentos ul li').length ).toEqual(0);
-	  });
+			waitsFor(function(){return reiniciado}, 'O evento não foi emitido ou foi com o valor errado!', 200);
+		});
+	
 	});
 	
 	describe('lista de movimentos', function() {
 		it("deve adicionar uma ul vazia quando receber o parâmetro listaMovimentosId", function() {
-			expect( $('#movimentos ul').length ).toEqual(1);
+			expect( tabuleiro._$listaMovimentos.length ).toEqual(1);
+	  });
+	
+		it("deve limpar a lista de movimentos ao reiniciar", function() {
+			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
+			tabuleiro.reiniciar();
+			expect( tabuleiro._$listaMovimentos.find('li').length ).toEqual(0);
 	  });
 	
 		it("deve adicionar o movimento na lista após uma execução", function() {
 			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
 			waitsFor(function(){
 				return (
-					$('#movimentos ul li').length == 1 &&
-					$('#movimentos ul li:first').html() == "1&gt;3"
+					tabuleiro._$listaMovimentos.find('li').length == 1 &&
+					tabuleiro._$listaMovimentos.find('li:first').html() == "1&gt;3"
 				);
 			}, 'li ser adicionada na lista de movimentos', 200);
 	  });
@@ -133,24 +151,22 @@ describe("Resta1.Tabuleiro", function() {
 		beforeEach(function() {
 			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
 			SpecHelper.executarMovimento(tabuleiro, ['4', '5', '6']);
-			tabuleiro._$listaMovimentos.find('li:last').addClass('para-remover');
-			console.log(tabuleiro._$listaMovimentos.find('li'));
+			tabuleiro._$listaMovimentos.find('li:last').addClass('para-remover'); //simula o click no ultimo movimento da lista
 			tabuleiro.desfazerMovimentosSelecionados();
 		});
 		
-		// it("deve desfazer a lista de movimentos selecionados", function() {
-		// 	expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
-		// 	expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(true);
-		// 	  });		
+		it("deve desfazer a lista de movimentos selecionados", function() {
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(true);
+	  });		
 		
 		it("deve retirar os passos da lista de movimentos", function() {
-			//expect( tabuleiro._$listaMovimentos.find('li:last').html() ).toEqual("1&gt;3");
-			console.log(tabuleiro._$listaMovimentos.find('li'));
+			expect( tabuleiro._$listaMovimentos.find('li:last').html() ).toEqual("1&gt;3");
 	  });
 	
-		// it("deve atualizar o contador", function() {
-		// 	expect( tabuleiro._$contador.html() ).toEqual("3");
-		// 	  });
+		it("deve atualizar o contador", function() {
+			expect( tabuleiro._$contador.html() ).toEqual("3");
+	  });
 	});
 	
 	

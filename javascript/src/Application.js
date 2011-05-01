@@ -10,10 +10,6 @@ $(document).ready(function(){
 		listaMovimentosId : 'movimentos'
 	});
 	
-	$('#pontuacao').bind('totalDePecasAlterado', function(event, novoValor) {
-		$(this).text(novoValor);
-	});
-	
 	//binds
 	$('#reiniciar-btn').click(function() {
 		tabuleiro.reiniciar();
