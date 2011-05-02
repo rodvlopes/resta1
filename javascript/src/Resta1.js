@@ -45,7 +45,7 @@ var Resta1 = {
 		
 		//Inicializar
 		this._inicializar = function() {
-			self._pecaSnippet = '<div class="peca ui-draggable" style="position: relative;"></div>';
+			self._pecaSnippet = '<div class="peca ui-draggable" style="position: relative; display: none;"></div>';
 			
 			self._id = params['id'];
 			self._$tabuleiro = $("#"+self._id);
@@ -135,11 +135,18 @@ var Resta1 = {
 			$elemDrop.append($elemDragged.css('top','0').css('left', '0'));
 		};
 		
-		this.reverter = function(movimento) {
-			self._$tabuleiro.find('td[data-spot="'+movimento[1]+'"]').append(self._pecaSnippet);
-			self._$tabuleiro.find('td[data-spot="'+movimento[0]+'"]').append(
-				self._$tabuleiro.find('td[data-spot="'+movimento[2]+'"]').children()
-			);
+		this.reverter = function(movimento, posAcao) {
+			self._$tabuleiro.find('td[data-spot="'+movimento[0]+'"]').html(self._pecaSnippet);
+			self._$tabuleiro.find('td[data-spot="'+movimento[0]+'"]').find('.peca').fadeIn('fast');
+			
+			self._$tabuleiro.find('td[data-spot="'+movimento[1]+'"]').html(self._pecaSnippet);
+			self._$tabuleiro.find('td[data-spot="'+movimento[1]+'"]').find('.peca').fadeIn('fast');
+			
+			self._$tabuleiro.find('td[data-spot="'+movimento[2]+'"]').find('.peca').fadeOut('fast', function() {
+				self._$tabuleiro.find('td[data-spot="'+movimento[2]+'"]').html('');
+				self.eventos.emitirMovimentoRevertido(movimento);
+				if (typeof(posAcao) == 'function') { posAcao(); }
+			}); 
 		};
 		
 		this.movimentoPossivelNoEstadoAtual = function (de, para) {
@@ -173,16 +180,19 @@ var Resta1 = {
 		};
 		
 		this.desfazerMovimentosSelecionados = function() {
-			var movimentosParaDesfazer = $(self._$listaMovimentos.find('.para-remover').get().reverse());
-			movimentosParaDesfazer.each(function(){
-				var mSplit = this.innerHTML.split('&gt;');
-				var movimento = self._movimentos.ehValido(mSplit[0],mSplit[1]);
-				self.reverter(movimento);
-				$(this).remove();
-			});
+			var movimentosParaDesfazer = self._$listaMovimentos.find('.para-remover').get();
 			
-			self.tornarPecasDraggables();
-			self.eventos.emitirTotalDePecasAlterado();
+			(function defazerRecusivo() {
+				if (movimentosParaDesfazer.length == 0) {
+					self.tornarPecasDraggables();
+					return;
+				}
+				var $li = $(movimentosParaDesfazer.pop());
+				$li.remove();
+				var mSplit = $li.html().split('&gt;');
+				var movimento = self._movimentos.ehValido(mSplit[0],mSplit[1]);
+				self.reverter(movimento, defazerRecusivo);
+			})();
 		};
 		
 		// *** EVENTOS *** //
@@ -202,6 +212,12 @@ var Resta1 = {
 					$(self).trigger('jogoReiniciado');
 					
 					self.eventos.emitirTotalDePecasAlterado();
+			},
+			
+			emitirMovimentoRevertido : function(movimento) {
+				$(self).trigger('movimentoRevertido', [movimento]);
+				
+				self.eventos.emitirTotalDePecasAlterado();
 			}
 		};
 		
