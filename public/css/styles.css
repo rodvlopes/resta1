@@ -253,6 +253,10 @@ footer p {
 margin-top: -15px;
 }
 
+aside textarea {
+	width: 250px;
+}
+
 /*tabuleiro*/
 #tabuleiro {
 	border: 1px dashed black;

@@ -124,12 +124,13 @@ var Resta1 = {
 			});
 		};
 		
-		this.executar = function(movimento, $elemDragged, $elemDrop) {
-			var meioSpot = movimento[1]
+		this.executar = function(movimento, $elemDragged, $elemDrop, posAcao) {
+			var meioSpot = movimento[1];
 			self._$tabuleiro.find('td[data-spot="'+meioSpot+'"]').children()
 				.fadeOut(function(){
 					$(this).remove();
 					self.eventos.emitirPecaComida(movimento);
+					if (typeof(posAcao) == 'function') { posAcao(); }
 				});
 			
 			$elemDrop.append($elemDragged.css('top','0').css('left', '0'));
@@ -194,6 +195,29 @@ var Resta1 = {
 				self.reverter(movimento, defazerRecusivo);
 			})();
 		};
+		
+		this.executarMovimentos = function(movimentosStr) {
+			var movimentosStrArr = movimentosStr.split(/\s+/);
+			var movimentosParaExecutar = [];
+			for (var i=0; i< movimentosStrArr.length; i++) {
+				var mSplit = movimentosStrArr[i].split('>');
+				movimentosParaExecutar.push(self._movimentos.ehValido(mSplit[0], mSplit[1]));
+			}
+			movimentosParaExecutar = movimentosParaExecutar.reverse();
+			
+			(function executarRecusivo() {
+				if (movimentosParaExecutar.length == 0) {
+					return;
+				}
+				var movimento = movimentosParaExecutar.pop();
+				var de 		= movimento[0];
+				var para 	= movimento[2];
+				$elemDragged = $('td[data-spot="'+de+'"]').children();
+				$elemDrop    = $('td[data-spot="'+para+'"]');
+				self.executar(movimento, $elemDragged, $elemDrop, executarRecusivo);
+			})();
+		};
+		
 		
 		// *** EVENTOS *** //
 		this.eventos = {

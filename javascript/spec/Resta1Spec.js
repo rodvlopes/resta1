@@ -170,4 +170,16 @@ describe("Resta1.Tabuleiro", function() {
 	});
 	
 	
+	describe('executarMovimentos', function() {
+		// beforeEach(function() {
+		// });
+		
+		it("deve executar um lista de movimentos válidos", function() {
+			tabuleiro.executarMovimentos('1>3 4>6');
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(false);
+	  });
+	});
+	
+	
 }); //describe Tabuleiro
