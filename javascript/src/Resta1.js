@@ -255,7 +255,7 @@ var Resta1 = {
 
 
 //UTILS
-
+//TODO: Extrair para arquivo utils.js
 Array.prototype.contains = function(obj) {
   var i = this.length;
   while (i--) {
@@ -264,4 +264,28 @@ Array.prototype.contains = function(obj) {
     }
   }
   return false;
+}
+
+Notification = {
+	
+	generic : function(msg, header, type) {
+		$.jGrowl(msg, {header : header, life:5000, theme: type});
+	},
+	
+	info : function(msg, header) {
+		Notification.generic(msg, header, arguments.callee.name)
+	},
+	
+	error : function(msg, header) {
+		Notification.generic(msg, header, arguments.callee.name)
+	},
+	
+	help : function(msg, header) {
+		Notification.generic(msg, header, arguments.callee.name)
+	},
+	
+	alert : function(msg, header) {
+		Notification.generic(msg, header, arguments.callee.name)
+	}
+	
 }
