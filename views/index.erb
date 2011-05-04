@@ -96,14 +96,25 @@
 
 				<h3>Ações</h3>
 					<ul>
-						<li><a id="reiniciar-btn" href="javascript:void(0);">Reiniciar</a></li>
 						<li>
-							<a id="executar-sequencia-btn" href="javascript:void(0);">Executar Sequência</a>
+							<a id="reiniciar-btn" href="javascript:void(0);"
+								title="Reinicia o jogo">Reiniciar</a>
+						</li>
+						<li>
+							<a id="executar-sequencia-btn" href="javascript:void(0);" 
+								title="Executa uma sequência de movimentos apartir do estado atual">Executar Sequência</a>
 							<span id="executar-sequencia-tab">
 								: <a id="executar-sequencia-sim-btn" href="javascript:void(0);">sim</a>
 								| <a id="executar-sequencia-nao-btn" href="javascript:void(0);">não</a>
 								<textarea id="sequencia-text"></textarea>
 							</span>
+						</li>
+						<li>
+							<a id="copiar-btn" href="javascript:void(0);" 
+								title="Copia a lista de movimetos do estado atual para a área de transferência">Copiar Movimentos</a>
+								<span id="copiar-tab">
+									<textarea id="copiar-text"></textarea>
+								</span>
 						</li>
 					</ul>
 

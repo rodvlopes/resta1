@@ -151,7 +151,7 @@ var Resta1 = {
 		};
 		
 		this.movimentoPossivelNoEstadoAtual = function (de, para) {
-			var movimento = self._movimentos.ehValido(de, para)
+			var movimento = (typeof(de) == "object") ? de : self._movimentos.ehValido(de, para);
 			if (!movimento) return false;
 			
 			var meioSpot = movimento[1];
@@ -197,11 +197,20 @@ var Resta1 = {
 		};
 		
 		this.executarMovimentos = function(movimentosStr) {
-			var movimentosStrArr = movimentosStr.split(/\s+/);
+			if ($.trim(movimentosStr).length == 0) return;
+			
+			var movimentosStrArr = $.trim(movimentosStr).split(/\s+/);
 			var movimentosParaExecutar = [];
 			for (var i=0; i< movimentosStrArr.length; i++) {
 				var mSplit = movimentosStrArr[i].split('>');
-				movimentosParaExecutar.push(self._movimentos.ehValido(mSplit[0], mSplit[1]));
+				var movimento = self._movimentos.ehValido(mSplit[0], mSplit[1]);
+				if (movimento) {
+					movimentosParaExecutar.push(movimento);
+				}
+				else {
+					Notification.error("Esta sequência de movimentos não é válida. Movimento incorreto encontrado: #m.".replace("#m",mSplit[0]+'>'+mSplit[1]), "Erro");
+					return;
+				}
 			}
 			movimentosParaExecutar = movimentosParaExecutar.reverse();
 			
@@ -209,7 +218,14 @@ var Resta1 = {
 				if (movimentosParaExecutar.length == 0) {
 					return;
 				}
+				
 				var movimento = movimentosParaExecutar.pop();
+				
+				if (!self.movimentoPossivelNoEstadoAtual(movimento)) {
+					Notification.error("O movimento #m não pode ser executado no estado atual.".replace("#m",movimento[0]+'>'+movimento[2]), "Erro");
+					return;
+				}
+				
 				var de 		= movimento[0];
 				var para 	= movimento[2];
 				$elemDragged = $('td[data-spot="'+de+'"]').children();
@@ -269,23 +285,23 @@ Array.prototype.contains = function(obj) {
 Notification = {
 	
 	generic : function(msg, header, type) {
-		$.jGrowl(msg, {header : header, life:5000, theme: type});
+		$.jGrowl(msg, {header : header, life:8000, theme: type});
 	},
 	
 	info : function(msg, header) {
-		Notification.generic(msg, header, arguments.callee.name)
+		Notification.generic(msg, header, 'info');
 	},
 	
 	error : function(msg, header) {
-		Notification.generic(msg, header, arguments.callee.name)
+		Notification.generic(msg, header, 'error');
 	},
 	
 	help : function(msg, header) {
-		Notification.generic(msg, header, arguments.callee.name)
+		Notification.generic(msg, header, 'help');
 	},
 	
 	alert : function(msg, header) {
-		Notification.generic(msg, header, arguments.callee.name)
+		Notification.generic(msg, header, 'alert');
 	}
 	
 }

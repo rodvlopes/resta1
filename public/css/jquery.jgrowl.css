@@ -81,25 +81,26 @@ div.center div.jGrowl-notification, div.center div.jGrowl-closer {
 }
 
 div.jGrowl div.jGrowl-notification, div.jGrowl div.jGrowl-closer {
-	background-color: 		#000;
-	opacity: 				.85;
-    -ms-filter: 			"progid:DXImageTransform.Microsoft.Alpha(Opacity=85)"; 
+	background-color: #1F4677;
+	opacity: 					.9;
+    -ms-filter: 		"progid:DXImageTransform.Microsoft.Alpha(Opacity=85)"; 
     filter: 				progid:DXImageTransform.Microsoft.Alpha(Opacity=85); 
 	zoom: 					1;
 	width: 					235px;
 	padding: 				10px;
-	margin-top: 			5px;
-	margin-bottom: 			5px;
-	font-family: 			Tahoma, Arial, Helvetica, sans-serif;
-	font-size: 				1em;
-	text-align: 			left;
+	margin-top: 		5px;
+	margin-bottom: 	5px;
+	font-family: 		Tahoma, Arial, Helvetica, sans-serif;
+	font-size: 			1em;
+	text-align: 		left;
 	display: 				none;
-	-moz-border-radius: 	5px;
+	-moz-border-radius: 		5px;
 	-webkit-border-radius:	5px;
 }
 
 div.jGrowl div.jGrowl-notification {
 	min-height: 			40px;
+	border: 2px black solid;
 }
 
 div.jGrowl div.jGrowl-notification div.jGrowl-header {

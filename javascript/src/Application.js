@@ -10,7 +10,7 @@ $(document).ready(function(){
 		listaMovimentosId : 'movimentos'
 	});
 	
-	$('#executar-sequencia-tab').hide();
+	$('#executar-sequencia-tab, #copiar-tab').hide();
 	
 	//binds
 	$('#reiniciar-btn').click(function() {
@@ -18,7 +18,7 @@ $(document).ready(function(){
 	});
 	
 	$('#executar-sequencia-btn').click(function() {
-		$('#executar-sequencia-tab').show();
+		$('#executar-sequencia-tab').toggle();
 		$('#sequencia-text').focus();
 	});
 	
@@ -37,6 +37,14 @@ $(document).ready(function(){
 			$('#executar-sequencia-sim-btn').click();
 			return false;
 		}
+	});
+	
+	$('#copiar-btn').click(function() {
+		$('#copiar-tab').toggle();
+		var sequencia = '';
+		tabuleiro._$listaMovimentos.find('li').each(function(){sequencia += $(this).text() + ' ';});
+		$('#copiar-text').val(sequencia);
+		$('#copiar-text').focus().select();
 	});
 		
 });

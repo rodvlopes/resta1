@@ -1,5 +1,7 @@
 //TOOD: Tirar a lista de movimentos do backend
 //TODO: Colocar o html do tabuleiro como sendo o default do componente (trazer para dentro)
+//TODO: Tipar o movimento
+//TODO: Tirar o desenho do jogo da home e substitui-lo por um html
 
 describe("Resta1.Movimentos", function() {
   var movimentos;
@@ -170,14 +172,33 @@ describe("Resta1.Tabuleiro", function() {
 	});
 	
 	
-	describe('executarMovimentos', function() {
-		// beforeEach(function() {
-		// });
-		
+	describe('executarMovimentos', function() {		
 		it("deve executar um lista de movimentos válidos", function() {
 			tabuleiro.executarMovimentos('1>3 4>6');
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(false);
+	  });
+	
+		it("deve executar um lista de movimentos válidos com input imperfeito", function() {
+			tabuleiro.executarMovimentos('    1>3       4>6           ');
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(false);
+	  });
+	
+		it("deve lançar uma notificação quando houver um movimento inválido na sequência e parar", function() {
+			spyOn(Notification, 'error');
+			tabuleiro.executarMovimentos('1>3 6>6');
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(true);
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(true);
+			expect(Notification.error).toHaveBeenCalledWith("Esta sequência de movimentos não é válida. Movimento incorreto encontrado: 6>6.", "Erro");
+			  });
+			
+		it("deve lançar uma notificação quando o movimento for inválido no estado atual executando até o erro", function() {
+			spyOn(Notification, 'error');
+			tabuleiro.executarMovimentos('1>3 1>3');
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
+			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(true);
+			expect(Notification.error).toHaveBeenCalledWith("O movimento 1>3 não pode ser executado no estado atual.", "Erro");
 	  });
 	});
 	
