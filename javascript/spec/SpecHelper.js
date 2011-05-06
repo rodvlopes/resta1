@@ -7,13 +7,3 @@ beforeEach(function() {
     }
   })
 });
-
-SpecHelper = {
-	executarMovimento : function(tabuleiro, movimento) {
-		var de 		= movimento[0];
-		var para 	= movimento[2];
-		$elemDragged = $('td[data-spot="'+de+'"]').children();
-		$elemDrop    = $('td[data-spot="'+para+'"]');
-		tabuleiro.executar(movimento, $elemDragged, $elemDrop);
-	}
-}

@@ -1,30 +1,64 @@
 var Resta1 = {
 
+	/*#################################################*/
+	/*############        MOVIMENTO         ##########*/
+	
+	Movimento : function (movimentoArray) {
+		this.de 	= movimentoArray[0];
+		this.meio = movimentoArray[1];
+		this.para = movimentoArray[2];
+		
+		this.equals = function(de, para) {
+			if (typeof(de) == 'object') {
+				var m=de;
+				return this.de == m[0] && this.meio == m[1] && this.para == m[2];
+			}
+			return this.de == de && this.para == para;
+		}
+		
+		this.toArray = function() {
+			return [this.de, this.meio, this.para];
+		}
+		
+		this.toString = function() {
+			return '['+this.de+','+this.meio+','+this.para+']';
+		}
+	},
+
+
 	/*##################################################*/
 	/*############        MOVIMENTOS         ##########*/
 	
 	Movimentos : function (params) {
-		if (params['movimentos']) {
-			this._movimentos = params['movimentos'];
-		}
-		else if (params['json']) {
-			var self = this;
-			$.getJSON(params['json'], function(listaMovimentos){
-				self._movimentos = listaMovimentos;
-			})
-		}
-		else {
-			this._movimentos = [];
+		var self = this;
+		self._movimentos = [];
+		
+		function init() {
+			
+			if (params['movimentos']) {
+				self.inicializarMovimentos(params['movimentos']);
+			}
+			else if (params['json']) {
+				$.getJSON(params['json'], self.inicializarMovimentos);
+			}
+			
 		}
 		
+		this.inicializarMovimentos = function(lista) {
+			for(var i=0; i<lista.length; i++) {
+				self._movimentos.push(new Resta1.Movimento(lista[i]));
+			}
+		}
 
 		this.ehValido = function(de, para) {
-			for (var i in this._movimentos) {
+			for (var i=0; i<this._movimentos.length; i++) {
 				var m = this._movimentos[i];
-				if (m[0]==de && m[2]==para) { return m; }
+				if (m.equals(de,para)) { return m; }
 			}
 			return false;
 		}
+		
+		init();
 	},
 	
 	
@@ -49,15 +83,16 @@ var Resta1 = {
 			
 			self._id = params['id'];
 			self._$tabuleiro = $("#"+self._id);
-			if (self._$tabuleiro.length != 1) console.log('Erro: Tabuleiro não encontrado!');
+			if (self._$tabuleiro.length != 1) Notification.error('Tabuleiro não encontrado!');
 		
 			self._movimentos = params['movimentos'];
-			if (!self._movimentos) console.log('Erro: Tabuleiro precisa regras de movimento para funcionar!');
+			if (!self._movimentos) Notification.error('Tabuleiro precisa regras de movimento para funcionar!');
 		
 			if (params['contadorId']) {
 				self._contador = params['contadorId'];
 				self._$contador = $("#"+self._contador);
 				$(self).bind('totalDePecasAlterado', function(event, novoValor) {
+					console.log(novoValor);
 					self._$contador.text(novoValor);
 				});
 			}
@@ -125,8 +160,7 @@ var Resta1 = {
 		};
 		
 		this.executar = function(movimento, $elemDragged, $elemDrop, posAcao) {
-			var meioSpot = movimento[1];
-			self._$tabuleiro.find('td[data-spot="'+meioSpot+'"]').children()
+			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').children()
 				.fadeOut(function(){
 					$(this).remove();
 					self.eventos.emitirPecaComida(movimento);
@@ -137,14 +171,15 @@ var Resta1 = {
 		};
 		
 		this.reverter = function(movimento, posAcao) {
-			self._$tabuleiro.find('td[data-spot="'+movimento[0]+'"]').html(self._pecaSnippet);
-			self._$tabuleiro.find('td[data-spot="'+movimento[0]+'"]').find('.peca').fadeIn('fast');
+			self._$tabuleiro.find('td[data-spot="'+movimento.de+'"]').html(self._pecaSnippet);
+			self._$tabuleiro.find('td[data-spot="'+movimento.de+'"]').find('.peca').fadeIn('fast');
 			
-			self._$tabuleiro.find('td[data-spot="'+movimento[1]+'"]').html(self._pecaSnippet);
-			self._$tabuleiro.find('td[data-spot="'+movimento[1]+'"]').find('.peca').fadeIn('fast');
+			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').html(self._pecaSnippet);
+			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').find('.peca').fadeIn('fast');
 			
-			self._$tabuleiro.find('td[data-spot="'+movimento[2]+'"]').find('.peca').fadeOut('fast', function() {
-				self._$tabuleiro.find('td[data-spot="'+movimento[2]+'"]').html('');
+			self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').find('.peca').fadeOut('fast', function() {
+				self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').html('');
+				console.log('emirit');
 				self.eventos.emitirMovimentoRevertido(movimento);
 				if (typeof(posAcao) == 'function') { posAcao(); }
 			}); 
@@ -152,16 +187,17 @@ var Resta1 = {
 		
 		this.movimentoPossivelNoEstadoAtual = function (de, para) {
 			var movimento = (typeof(de) == "object") ? de : self._movimentos.ehValido(de, para);
+			console.log("MV POS? " + movimento);
 			if (!movimento) return false;
 			
-			var meioSpot = movimento[1];
-			var paraSpot = movimento[2];
-			return 	self._$tabuleiro.find('td[data-spot="'+meioSpot+'"]').children().length >  0 &&
-							self._$tabuleiro.find('td[data-spot="'+paraSpot+'"]').children().length == 0;
+			console.log(self._$tabuleiro.html());
+			console.log(self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').children());
+			console.log(self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').children());
+			return 	self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').children().length >  0 &&
+							self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').children().length == 0;
 		};
 		
 		this.reiniciar = function() {
-			
 			self._$tabuleiro.find('.spot').each(function(){
 				var spot = this.getAttribute('data-spot');
 				if (self._estadoInicial.contains(spot)) {
@@ -177,11 +213,14 @@ var Resta1 = {
 		};
 		
 		this.listaMovimentosAdicionar = function(event, movimento) {
-				self._$listaMovimentos.append('<li>'+movimento[0]+'>'+movimento[2]+'</li>');
+				self._$listaMovimentos.append('<li>'+movimento.de+'>'+movimento.para+'</li>');
 		};
 		
 		this.desfazerMovimentosSelecionados = function() {
 			var movimentosParaDesfazer = self._$listaMovimentos.find('.para-remover').get();
+			
+			console.log('enrtei');
+			console.log(movimentosParaDesfazer);
 			
 			(function defazerRecusivo() {
 				if (movimentosParaDesfazer.length == 0) {
@@ -192,6 +231,7 @@ var Resta1 = {
 				$li.remove();
 				var mSplit = $li.html().split('&gt;');
 				var movimento = self._movimentos.ehValido(mSplit[0],mSplit[1]);
+				console.log(movimento);
 				self.reverter(movimento, defazerRecusivo);
 			})();
 		};
@@ -222,14 +262,12 @@ var Resta1 = {
 				var movimento = movimentosParaExecutar.pop();
 				
 				if (!self.movimentoPossivelNoEstadoAtual(movimento)) {
-					Notification.error("O movimento #m não pode ser executado no estado atual.".replace("#m",movimento[0]+'>'+movimento[2]), "Erro");
+					Notification.error("O movimento #m não pode ser executado no estado atual.".replace("#m",movimento.de+'>'+movimento.para), "Erro");
 					return;
 				}
 				
-				var de 		= movimento[0];
-				var para 	= movimento[2];
-				$elemDragged = $('td[data-spot="'+de+'"]').children();
-				$elemDrop    = $('td[data-spot="'+para+'"]');
+				$elemDragged = $('td[data-spot="'+movimento.de+'"]').children();
+				$elemDrop    = $('td[data-spot="'+movimento.para+'"]');
 				self.executar(movimento, $elemDragged, $elemDrop, executarRecusivo);
 			})();
 		};
@@ -264,44 +302,5 @@ var Resta1 = {
 		self._inicializar();
 		
 	}//Tabuleiro
-	
-}
-
-
-
-
-//UTILS
-//TODO: Extrair para arquivo utils.js
-Array.prototype.contains = function(obj) {
-  var i = this.length;
-  while (i--) {
-    if (this[i] === obj) {
-      return true;
-    }
-  }
-  return false;
-}
-
-Notification = {
-	
-	generic : function(msg, header, type) {
-		$.jGrowl(msg, {header : header, life:8000, theme: type});
-	},
-	
-	info : function(msg, header) {
-		Notification.generic(msg, header, 'info');
-	},
-	
-	error : function(msg, header) {
-		Notification.generic(msg, header, 'error');
-	},
-	
-	help : function(msg, header) {
-		Notification.generic(msg, header, 'help');
-	},
-	
-	alert : function(msg, header) {
-		Notification.generic(msg, header, 'alert');
-	}
 	
 }

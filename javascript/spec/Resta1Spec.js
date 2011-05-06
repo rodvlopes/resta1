@@ -15,7 +15,7 @@ describe("Resta1.Movimentos", function() {
 
 	  it("deve retornar o movimento dado de,para", function() {
 			movimento = movimentos.ehValido('1', '3');
-	    expect(movimento).toEqual(['1', '2', '3']);
+	    expect(movimento.toArray()).toEqual(['1', '2', '3']);
 	  });
 	
 	  it("deve retornar false quando não encontrar um movimento dado de,para ", function() {
@@ -67,8 +67,8 @@ describe("Resta1.Tabuleiro", function() {
 	it("deve tornar as peças draggables", function() {
 		expect( $('#tabuleiro div.ui-draggable').length ).toEqual(4);
   });
-
-
+	
+	
 	describe('movimentoPossivelNoEstadoAtual?', function() {
 		it("deve retornar true quando for possível no estado atual", function() {
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(true);
@@ -89,25 +89,24 @@ describe("Resta1.Tabuleiro", function() {
 			$(tabuleiro).bind('totalDePecasAlterado', function(event, novoValor){
 				tabuleiro._$contador.text(novoValor);
 			});
-			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
+			tabuleiro.executarMovimentos('1>3');
 			waitsFor(function(){return tabuleiro._$contador.text() == '3'}, 'O evento não foi emitido ou foi com o valor errado!', 200);
 	  });
 	
 		it("devo disparar o evento pecaComida com o movimento", function() {
-			var movimento = [0,0,0];
+			var movimento = new Resta1.Movimento([0,0,0]);
 			$(tabuleiro).bind('pecaComida', function(event, m){
 				movimento = m;
 			});
-			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
-			waitsFor(function(){return movimento[0] == '1' && movimento[2] == '3'}, 'O evento não foi emitido ou foi com o valor errado!', 200);
+			tabuleiro.executarMovimentos('1>3');
+			waitsFor(function(){return movimento.equals('1','3');}, 'O evento não foi emitido ou foi com o valor errado!', 200);
 	  });
 	});
 	
 	
 	describe('reiniciar', function() {
 		it("deve voltar para o estado inicial do tabuleiro", function() {
-			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
-			SpecHelper.executarMovimento(tabuleiro, ['4', '5', '6']);
+			tabuleiro.executarMovimentos('1>3 4>6');
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(false);
 			tabuleiro.reiniciar();
@@ -132,13 +131,13 @@ describe("Resta1.Tabuleiro", function() {
 	  });
 	
 		it("deve limpar a lista de movimentos ao reiniciar", function() {
-			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
+			tabuleiro.executarMovimentos('1>3');
 			tabuleiro.reiniciar();
 			expect( tabuleiro._$listaMovimentos.find('li').length ).toEqual(0);
 	  });
 	
 		it("deve adicionar o movimento na lista após uma execução", function() {
-			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
+			tabuleiro.executarMovimentos('1>3');
 			waitsFor(function(){
 				return (
 					tabuleiro._$listaMovimentos.find('li').length == 1 &&
@@ -151,8 +150,7 @@ describe("Resta1.Tabuleiro", function() {
 
 	describe('desfazerMovimentosSelecionados', function() {
 		beforeEach(function() {
-			SpecHelper.executarMovimento(tabuleiro, ['1', '2', '3']);
-			SpecHelper.executarMovimento(tabuleiro, ['4', '5', '6']);
+			tabuleiro.executarMovimentos('1>3 4>6');
 			tabuleiro._$listaMovimentos.find('li:last').addClass('para-remover'); //simula o click no ultimo movimento da lista
 			tabuleiro.desfazerMovimentosSelecionados();
 		});
@@ -161,11 +159,11 @@ describe("Resta1.Tabuleiro", function() {
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('1', '3') ).toEqual(false);
 			expect( tabuleiro.movimentoPossivelNoEstadoAtual('4', '6') ).toEqual(true);
 	  });		
-		
+			
 		it("deve retirar os passos da lista de movimentos", function() {
 			expect( tabuleiro._$listaMovimentos.find('li:last').html() ).toEqual("1&gt;3");
 	  });
-	
+		
 		it("deve atualizar o contador", function() {
 			expect( tabuleiro._$contador.html() ).toEqual("3");
 	  });
