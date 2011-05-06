@@ -69,7 +69,7 @@ var Resta1 = {
 	//  id 						: id da tabela que representa o tabuleiro do jogo.
 	//	movimentos 		: instância de Movimentos.
 	//	contadorId  	: [opcional] id do elemento que vai receber
-	//                	o evento totalDePecasAlterado.
+	//                	o valor da pontuação do jogo.
 	//	listaMovimentosId : Id do elemento onde será adicionado a lista 
 	//											de movimentações que foram executadas.
 	//}

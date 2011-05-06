@@ -1,8 +1,3 @@
-//TOOD: Tirar a lista de movimentos do backend
-//TODO: Colocar o html do tabuleiro como sendo o default do componente (trazer para dentro)
-//TODO: Tipar o movimento
-//TODO: Tirar o desenho do jogo da home e substitui-lo por um html
-
 describe("Resta1.Movimentos", function() {
   var movimentos;
 
