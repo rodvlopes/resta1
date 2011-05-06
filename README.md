@@ -7,6 +7,11 @@ Descrição
 O objetivo deste trabalho é escrever uma solução via algorítmo genético
 para resolver o problema do jogo Resta 1.
 
+DEMO
+----
+
+http://resta1.rodrigovitoria.com/
+
 Features
 --------
 
