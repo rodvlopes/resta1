@@ -92,7 +92,6 @@ var Resta1 = {
 				self._contador = params['contadorId'];
 				self._$contador = $("#"+self._contador);
 				$(self).bind('totalDePecasAlterado', function(event, novoValor) {
-					console.log(novoValor);
 					self._$contador.text(novoValor);
 				});
 			}
@@ -179,7 +178,6 @@ var Resta1 = {
 			
 			self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').find('.peca').fadeOut('fast', function() {
 				self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').html('');
-				console.log('emirit');
 				self.eventos.emitirMovimentoRevertido(movimento);
 				if (typeof(posAcao) == 'function') { posAcao(); }
 			}); 
@@ -187,12 +185,8 @@ var Resta1 = {
 		
 		this.movimentoPossivelNoEstadoAtual = function (de, para) {
 			var movimento = (typeof(de) == "object") ? de : self._movimentos.ehValido(de, para);
-			console.log("MV POS? " + movimento);
 			if (!movimento) return false;
 			
-			console.log(self._$tabuleiro.html());
-			console.log(self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').children());
-			console.log(self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').children());
 			return 	self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').children().length >  0 &&
 							self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').children().length == 0;
 		};
@@ -219,9 +213,6 @@ var Resta1 = {
 		this.desfazerMovimentosSelecionados = function() {
 			var movimentosParaDesfazer = self._$listaMovimentos.find('.para-remover').get();
 			
-			console.log('enrtei');
-			console.log(movimentosParaDesfazer);
-			
 			(function defazerRecusivo() {
 				if (movimentosParaDesfazer.length == 0) {
 					self.tornarPecasDraggables();
@@ -231,7 +222,6 @@ var Resta1 = {
 				$li.remove();
 				var mSplit = $li.html().split('&gt;');
 				var movimento = self._movimentos.ehValido(mSplit[0],mSplit[1]);
-				console.log(movimento);
 				self.reverter(movimento, defazerRecusivo);
 			})();
 		};
