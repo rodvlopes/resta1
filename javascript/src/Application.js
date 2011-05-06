@@ -4,7 +4,7 @@ $(document).ready(function(){
 
 	var movimentos = new Resta1.Movimentos({json : '/movimentos'});
 	tabuleiro  = new Resta1.Tabuleiro({
-		id : 'tabuleiro', 
+		appendTo : 'tabuleiro-placeholder', 
 		movimentos : movimentos,
 		contadorId : 'pontuacao',
 		listaMovimentosId : 'movimentos'
@@ -33,7 +33,7 @@ $(document).ready(function(){
 	
 	$('#sequencia-text').keydown(function(e){
 		var KeyID = e.keyCode;
-		if (13 == KeyID && $(this).val().length > 2) {
+		if (13 === KeyID && $(this).val().length > 2) {
 			$('#executar-sequencia-sim-btn').click();
 			return false;
 		}
@@ -49,4 +49,4 @@ $(document).ready(function(){
 		
 });
 
-if (!console) {console ={log : function(){}}};
+if (!console) {console ={log : function(){}};}

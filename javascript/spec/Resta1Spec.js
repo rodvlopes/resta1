@@ -35,6 +35,7 @@ describe("Resta1.Tabuleiro", function() {
 		$('#fixture').remove();
 		$('body').append(' \
 		<div id="fixture">\
+			<div id="testeAppend"></div>\
 			<table id="tabuleiro">\
 				<tr>\
 					<td class="shore"></td>\
@@ -62,6 +63,12 @@ describe("Resta1.Tabuleiro", function() {
 	it("deve tornar as peças draggables", function() {
 		expect( $('#tabuleiro div.ui-draggable').length ).toEqual(4);
   });
+
+	it("deve criar o html default do tabuleiro quando passar o atributo appendTo e ignorar o id", function(){
+		var tab = new Resta1.Tabuleiro({appendTo: 'testeAppend', id : 'tabuleiro', movimentos : []});
+		expect($('#testeAppend').find('.peca').size()).toEqual(32);
+		expect(tab._$tabuleiro.get(0).nodeName).toEqual('TABLE');
+	});
 	
 	
 	describe('movimentoPossivelNoEstadoAtual?', function() {

@@ -258,28 +258,28 @@ aside textarea {
 }
 
 /*tabuleiro*/
-#tabuleiro {
+.tabuleiro {
 	border: 1px dashed black;
 	margin-top: 20px;
 	width: 100%;
 }
 
-#tabuleiro td {
+.tabuleiro td {
 	border-radius: 15px;
 	-moz-border-radius: 15px;
 	border: 1px solid black;
 	height: 80px;
 }
 
-#tabuleiro td.highlight {
+.tabuleiro td.highlight {
 	border-color: red;
 }
 
-#tabuleiro td.shore {
+.tabuleiro td.shore {
 	border: none;
 }
 
-#tabuleiro .peca {
+.tabuleiro .peca {
 	background-color: green;
 	border-radius: 15px;
 	cursor: move;
