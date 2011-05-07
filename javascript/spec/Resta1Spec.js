@@ -72,7 +72,6 @@ describe("Resta1.Tabuleiro", function() {
 	
 	it("deve usar os movimentos default quando nenhum movimento for passado", function(){
 		var tab = new Resta1.Tabuleiro({appendTo: 'testeAppend', id : 'tabuleiro'});
-		console.log(tab._movimentos);
 		var primeiroMovimento = tab._movimentos._movimentos[0];
 		var ultimoMovimento = tab._movimentos._movimentos[tab._movimentos._movimentos.length-1];
 		expect(primeiroMovimento.equals(["01","02","03"])).toBeTruthy();

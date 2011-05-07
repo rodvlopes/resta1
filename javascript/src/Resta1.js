@@ -148,8 +148,6 @@ var Resta1 = {
 	
 		//Métodos
 		this.tornarPecasDraggables = function() {
-			console.log('estou entrando no draggale');
-			console.log(!self._jogavel);
 			if (!self._jogavel) return;
 			self._$tabuleiro.find(".peca").draggable({
 			   revert: 'invalid'
