@@ -5,7 +5,9 @@ $(document).ready(function(){
 	tabuleiro  = new Resta1.Tabuleiro({
 		appendTo : 'tabuleiro-placeholder', 
 		contadorId : 'pontuacao',
-		listaMovimentosId : 'movimentos'
+		listaMovimentosId : 'movimentos',
+		execucaoInicial : '19>17 30>18 27>25 13>27 11>13 17>19 29>17 09>11',
+		instantaneo : true
 	});
 	
 	$('#executar-sequencia-tab, #copiar-tab').hide();

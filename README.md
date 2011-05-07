@@ -35,7 +35,8 @@ ANDAMENTO
 BACKLOG (PRIORIZADO)
 --------------------
 
-- Criar o modo não jogável
+- Permitir temificação do tabuleiro
+- JQuerificar (tornar um plugin)
 - Tirar o desenho do jogo da home e substitui-lo por um instância do tabuleiro (não jogável)
 
 
@@ -43,3 +44,4 @@ DONE
 ----
 - _05/05/2011_ Colocar o html do tabuleiro como sendo o default do componente (trazer para dentro)
 - _06/05/2011_ Tirar a lista de movimentos do backend
+- _06/05/2011_ Criar o modo não jogável, com estado inicial customizado.

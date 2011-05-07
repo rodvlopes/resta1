@@ -66,13 +66,17 @@ var Resta1 = {
 	/*############         TABULEIRO          ##########*/
 	//
 	//params {
-	//  id 						: id da tabela que representa o tabuleiro do jogo.
-	//  appendTo 			: id do elemento ao qual será apendando um tabuleiro default.
-	//	movimentos 		: instância de Movimentos.
-	//	contadorId  	: [opcional] id do elemento que vai receber
-	//                	o valor da pontuação do jogo.
+	//  id 								: id da tabela que representa o tabuleiro do jogo.
+	//  appendTo 					: id do elemento ao qual será apendando um tabuleiro default.
+	//	movimentos 				: instância de Movimentos.
+	//	contadorId  			: [opcional] id do elemento que vai receber
+	//                			o valor da pontuação do jogo.
 	//	listaMovimentosId : Id do elemento onde será adicionado a lista 
 	//											de movimentações que foram executadas.
+	//	jogavel						: default true.
+	//	execucaoInicial		: string de movimentos que será executada no momento da criaçao
+	//											do tabuleiro.
+	//	instantaneo				: default false. Se tem ou não animação nos movimentos.
 	//}
 	Tabuleiro : function(params) {
 		var self = this;
@@ -122,13 +126,22 @@ var Resta1 = {
 				});
 			}
 			
+			self._jogavel = true;
+			if (params['jogavel']) self._jogavel = params['jogavel'];
+			
+			self._instantaneo = false;
+			if (params['instantaneo']) self._instantaneo = params['instantaneo'];
+			self._animacaoTempo = self._instantaneo ? 0 : 'fast';
+			
+			self.execucaoInicial(params['execucaoInicial']);
+			
 			self._estadoInicial = [];
 			self._$tabuleiro.find('.peca').each(function(){ 
 				var spot = $(this).parent().get(0).getAttribute('data-spot');
 				self._estadoInicial.push(spot) ;
 			});
 			
-		
+			
 			self.tornarPecasDraggables();
 			self.tonarSpotsDroppables();
 		};		
@@ -136,12 +149,14 @@ var Resta1 = {
 	
 		//Métodos
 		this.tornarPecasDraggables = function() {
+			if (!self._jogavel) return;
 			self._$tabuleiro.find(".peca").draggable({
 			   revert: 'invalid'
 			});
 		};
 		
 		this.tonarSpotsDroppables = function() {
+			if (!self._jogavel) return;
 			self._$tabuleiro.find(".spot").droppable({
 				accept: function(elemento) {
 					var paraSpot = this.getAttribute('data-spot');
@@ -169,24 +184,24 @@ var Resta1 = {
 		};
 		
 		this.executar = function(movimento, $elemDragged, $elemDrop, posAcao) {
+			$elemDrop.append($elemDragged.css('top','0').css('left', '0'));
+			
 			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').children()
-				.fadeOut(function(){
+				.fadeOut(self._animacaoTempo, function(){
 					$(this).remove();
 					self.eventos.emitirPecaComida(movimento);
 					if (typeof(posAcao) == 'function') { posAcao(); }
 				});
-			
-			$elemDrop.append($elemDragged.css('top','0').css('left', '0'));
 		};
 		
 		this.reverter = function(movimento, posAcao) {
 			self._$tabuleiro.find('td[data-spot="'+movimento.de+'"]').html(self._pecaSnippet);
-			self._$tabuleiro.find('td[data-spot="'+movimento.de+'"]').find('.peca').fadeIn('fast');
+			self._$tabuleiro.find('td[data-spot="'+movimento.de+'"]').find('.peca').fadeIn(self._animacaoTempo);
 			
 			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').html(self._pecaSnippet);
-			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').find('.peca').fadeIn('fast');
+			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').find('.peca').fadeIn(self._animacaoTempo);
 			
-			self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').find('.peca').fadeOut('fast', function() {
+			self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').find('.peca').fadeOut(self._animacaoTempo, function() {
 				self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').html('');
 				self.eventos.emitirMovimentoRevertido(movimento);
 				if (typeof(posAcao) == 'function') { posAcao(); }
@@ -270,6 +285,12 @@ var Resta1 = {
 				$elemDrop    = $('td[data-spot="'+movimento.para+'"]');
 				self.executar(movimento, $elemDragged, $elemDrop, executarRecusivo);
 			})();
+		};
+		
+		this.execucaoInicial = function(movimentosStr) {
+			if (movimentosStr) {
+				self.executarMovimentos(movimentosStr);
+			}
 		};
 		
 		
