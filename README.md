@@ -37,8 +37,9 @@ BACKLOG (PRIORIZADO)
 
 - Criar o modo não jogável
 - Tirar o desenho do jogo da home e substitui-lo por um instância do tabuleiro (não jogável)
-- Tirar a lista de movimentos do backend
+
 
 DONE
 ----
 - _05/05/2011_ Colocar o html do tabuleiro como sendo o default do componente (trazer para dentro)
+- _06/05/2011_ Tirar a lista de movimentos do backend

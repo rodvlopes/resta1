@@ -2,10 +2,8 @@ var tabuleiro;
 
 $(document).ready(function(){
 
-	var movimentos = new Resta1.Movimentos({json : '/movimentos'});
 	tabuleiro  = new Resta1.Tabuleiro({
 		appendTo : 'tabuleiro-placeholder', 
-		movimentos : movimentos,
 		contadorId : 'pontuacao',
 		listaMovimentosId : 'movimentos'
 	});
