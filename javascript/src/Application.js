@@ -2,12 +2,19 @@ var tabuleiro;
 
 $(document).ready(function(){
 
+	var tabuleiroHeader = new Resta1.Tabuleiro({
+		appendTo : 'tabuleiro-header', 
+		jogavel : false
+	});
+	
+	tabuleiroHeader._$tabuleiro.find('td').each(function(){
+		$(this).html(this.getAttribute('data-spot'));
+	});
+
 	tabuleiro  = new Resta1.Tabuleiro({
 		appendTo : 'tabuleiro-placeholder', 
 		contadorId : 'pontuacao',
-		listaMovimentosId : 'movimentos',
-		execucaoInicial : '19>17 30>18 27>25 13>27 11>13 17>19 29>17 09>11',
-		instantaneo : true
+		listaMovimentosId : 'movimentos'
 	});
 	
 	$('#executar-sequencia-tab, #copiar-tab').hide();

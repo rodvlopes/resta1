@@ -127,10 +127,9 @@ var Resta1 = {
 			}
 			
 			self._jogavel = true;
-			if (params['jogavel']) self._jogavel = params['jogavel'];
+			if (params['jogavel']==false) self._jogavel = false;
 			
-			self._instantaneo = false;
-			if (params['instantaneo']) self._instantaneo = params['instantaneo'];
+			self._instantaneo = !!params['instantaneo'];
 			self._animacaoTempo = self._instantaneo ? 0 : 'fast';
 			
 			self.execucaoInicial(params['execucaoInicial']);
@@ -149,6 +148,8 @@ var Resta1 = {
 	
 		//Métodos
 		this.tornarPecasDraggables = function() {
+			console.log('estou entrando no draggale');
+			console.log(!self._jogavel);
 			if (!self._jogavel) return;
 			self._$tabuleiro.find(".peca").draggable({
 			   revert: 'invalid'
