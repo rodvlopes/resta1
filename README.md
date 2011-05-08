@@ -35,7 +35,8 @@ ANDAMENTO
 BACKLOG (PRIORIZADO)
 --------------------
 
-- JQuerificar (tornar um plugin)
+- Bug: Sequência falha: 19>17 30>18 27>25 13>27 24>26 22>24 08>22 21>23 23>25 07>21 31>23 32>24 18>30 33>25 24>22 10>24 25>23 12>10 09>11 23>09 21>23 27>25 
+- JQuerificar o Resta1 (tornar um plugin)
 
 
 DONE
