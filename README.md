@@ -35,8 +35,9 @@ ANDAMENTO
 BACKLOG (PRIORIZADO)
 --------------------
 
+- Refactor: Adicionar método para recuperar os movimentos executados na instância
 - Bug: Sequência falha: 19>17 30>18 27>25 13>27 24>26 22>24 08>22 21>23 23>25 07>21 31>23 32>24 18>30 33>25 24>22 10>24 25>23 12>10 09>11 23>09 21>23 27>25 
-- JQuerificar o Resta1 (tornar um plugin)
+- Planejar a implementação do algoritmo genético
 
 
 DONE
@@ -46,3 +47,4 @@ DONE
 - _06/05/2011_ Criar o modo não jogável, com estado inicial customizado
 - _06/05/2011_ Permitir temificação do tabuleiro
 - _06/05/2011_ Tirar o desenho do jogo da home e substitui-lo por um instância do tabuleiro (não jogável)
+- _08/05/2011_ JQuerificar o Resta1 (tornar um plugin)

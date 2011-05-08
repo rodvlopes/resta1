@@ -2,20 +2,16 @@ var tabuleiro;
 
 $(document).ready(function(){
 
-	var tabuleiroHeader = new Resta1.Tabuleiro({
-		appendTo : 'tabuleiro-header', 
-		jogavel : false
-	});
+	var tabuleiroHeader = $('#tabuleiro-header').resta1({jogavel : false}).get(0).tabuleiro;
 	
 	tabuleiroHeader._$tabuleiro.find('td').each(function(){
 		$(this).html(this.getAttribute('data-spot'));
 	});
 
-	tabuleiro  = new Resta1.Tabuleiro({
-		appendTo : 'tabuleiro-placeholder', 
+	tabuleiro = $('#tabuleiro-placeholder').resta1({
 		contadorId : 'pontuacao',
 		listaMovimentosId : 'movimentos'
-	});
+	}).get(0).tabuleiro;
 	
 	$('#executar-sequencia-tab, #copiar-tab').hide();
 	

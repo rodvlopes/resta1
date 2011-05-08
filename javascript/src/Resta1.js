@@ -87,10 +87,11 @@ var Resta1 = {
 			self._pecaSnippet = '<div class="peca ui-draggable" style="position: relative; display: none;"></div>';
 			
 			if (params['appendTo']) {
-				self._$tabuleiro = $('#'+params['appendTo']).append(Resta1.Tabuleiro.modeloDefault(params['tema'])).find('table');
+				var $div = (typeof(params['appendTo']) == "object") ? $(params['appendTo']) : $('#'+params['appendTo']);
+				self._$tabuleiro = $div.append(Resta1.Tabuleiro.modeloDefault(params['tema'])).find('table');
 			}
 			else if (params['id']) {
-				self._$tabuleiro = $("#"+params['id']);	
+				self._$tabuleiro = (typeof(params['id']) == "object") ? $(params['id']) : $("#"+params['id']);
 			}
 			else {
 				Notification.error('Tabuleiro não encontrado!');
@@ -129,7 +130,8 @@ var Resta1 = {
 			self._jogavel = true;
 			if (params['jogavel']==false) self._jogavel = false;
 			
-			self._instantaneo = !!params['instantaneo'];
+			self._instantaneo = false;
+			if (params['instantaneo'] == true) self._instantaneo = true;
 			self._animacaoTempo = self._instantaneo ? 0 : 'fast';
 			
 			self.execucaoInicial(params['execucaoInicial']);
@@ -327,7 +329,7 @@ var Resta1 = {
 
 
 Resta1.Tabuleiro.modeloDefault = function(tema){ 
-if (typeof(tema != 'string')) tema = '';
+if (typeof(tema) != 'string') tema = '';
 
 return '\
 <table class="tabuleiro #tema">\
@@ -399,3 +401,28 @@ return '\
 }
 
 Resta1.Tabuleiro.MovimentosDefault = [["01","02","03"],["01","04","09"],["02","05","10"],["03","02","01"],["03","06","11"],["04","05","06"],["04","09","16"],["05","10","17"],["06","05","04"],["06","11","18"],["07","08","09"],["07","14","21"],["08","09","10"],["08","15","22"],["09","04","01"],["09","08","07"],["09","10","11"],["09","16","23"],["10","05","02"],["10","09","08"],["10","11","12"],["10","17","24"],["11","06","03"],["11","10","09"],["11","12","13"],["11","18","25"],["12","11","10"],["12","19","26"],["13","12","11"],["13","20","27"],["14","15","16"],["15","16","17"],["16","09","04"],["16","15","14"],["16","17","18"],["16","23","28"],["17","10","05"],["17","16","15"],["17","18","19"],["17","24","29"],["18","11","06"],["18","17","16"],["18","19","20"],["18","25","30"],["19","18","17"],["20","19","18"],["21","14","07"],["21","22","23"],["22","15","08"],["22","23","24"],["23","16","09"],["23","22","21"],["23","24","25"],["23","28","31"],["24","17","10"],["24","23","22"],["24","25","26"],["24","29","32"],["25","18","11"],["25","24","23"],["25","26","27"],["25","30","33"],["26","19","12"],["26","25","24"],["27","20","13"],["27","26","25"],["28","23","16"],["28","29","30"],["29","24","17"],["30","25","18"],["30","29","28"],["31","28","23"],["31","32","33"],["32","29","24"],["33","30","25"],["33","32","31"]];
+
+/*#################################################*/
+/*############         JQ.PLUGIN         ##########*/
+
+(function($){
+	$.fn.resta1 = function(options) {
+		var settings = $.extend({}, $.fn.resta1.defaultOptions, options);
+
+		return this.each(function() {
+			var $this = $(this);
+			
+			if ($this.find('table').size() > 0) 
+					settings.id = $this.find('table').get(0);
+			else
+				settings.appendTo = this;
+
+			
+			this.tabuleiro = new Resta1.Tabuleiro(settings);
+			
+		});
+	};
+
+	$.fn.resta1.defaultOptions = {
+	};
+})(jQuery);

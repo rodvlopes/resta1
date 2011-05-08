@@ -211,3 +211,57 @@ describe("Resta1.Tabuleiro", function() {
 	
 	
 }); //describe Tabuleiro
+
+
+//JQ.Plugin
+describe("JQuery.resta1", function() {
+
+	beforeEach(function () {
+	  movimentos = new Resta1.Movimentos({
+			movimentos : [['1', '2', '3'], ['3', '2', '1'], ['4', '5', '6'], ['6', '5', '4']]
+		});
+	
+		$('#fixture').remove();
+		$('body').append(' \
+		<div id="fixture">\
+			<div id="tabuleiro"></div>\
+			<div id="tabuleiro2">\
+				<table>\
+					<tr>\
+						<td class="shore"></td>\
+						<td class="spot" data-spot="1"><div class="peca" /></td>\
+						<td class="spot" data-spot="2"><div class="peca" /></td>\
+						<td class="spot" data-spot="3"></td>\
+						<td class="shore"></td>\
+					</tr>\
+					<tr>\
+						<td class="shore"></td>\
+						<td class="spot" data-spot="4"><div class="peca" /></td>\
+						<td class="spot" data-spot="5"><div class="peca" /></td>\
+						<td class="spot" data-spot="6"></td>\
+						<td class="shore"></td>\
+					</tr>\
+				</table>\
+			</div>\
+			<span id="contador"></span>\
+			<div id="movimentos"></div>\
+		</div>\
+		');
+	});
+	
+	it("deve criar um tabuleiro resta1 default", function(){
+		$('#tabuleiro').resta1();
+		expect($('#tabuleiro').find('.peca').size()).toEqual(32);
+		expect($('#tabuleiro table').size()).toEqual(1);
+	});
+	
+	it("deve criar um tabuleiro resta1 customizado", function(){
+		var tab = $('#tabuleiro2').resta1().get(0).tabuleiro;
+		expect(tab._$tabuleiro.find('.peca').size()).toEqual(4);
+	});
+	
+	it("deve aceitar parametros de configuracao", function(){
+		$('#tabuleiro').resta1({tema: 'azul'});
+		expect($('#tabuleiro .azul').size()).toEqual(1);
+	});
+});
