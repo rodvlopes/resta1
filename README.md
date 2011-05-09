@@ -1,8 +1,8 @@
 Resta 1 Algorítimo Genético
-==================================
+===========================
 
 Descrição
-----------------------------------------------
+---------
 
 O objetivo deste trabalho é escrever uma solução via algorítmo genético
 para resolver o problema do jogo Resta 1.
@@ -32,19 +32,20 @@ Instalação
 ANDAMENTO
 =========
 
-BACKLOG (PRIORIZADO)
+Backlog (priorizado)
 --------------------
 
-- Refactor: Adicionar método para recuperar os movimentos executados na instância
-- Bug: Sequência falha: 19>17 30>18 27>25 13>27 24>26 22>24 08>22 21>23 23>25 07>21 31>23 32>24 18>30 33>25 24>22 10>24 25>23 12>10 09>11 23>09 21>23 27>25 
-- Planejar a implementação do algoritmo genético
+- _Refactor_: Adicionar método para recuperar os movimentos executados na instância
+- _Bug_: Sequência falha: 19>17 30>18 27>25 13>27 24>26 22>24 08>22 21>23 23>25 07>21 31>23 32>24 18>30 33>25 24>22 10>24 25>23 12>10 09>11 23>09 21>23 27>25 
+- _Task_: Planejar a implementação do algoritmo genético
 
 
-DONE
+Done
 ----
-- _05/05/2011_ Colocar o html do tabuleiro como sendo o default do componente (trazer para dentro)
-- _06/05/2011_ Tirar a lista de movimentos do backend
-- _06/05/2011_ Criar o modo não jogável, com estado inicial customizado
-- _06/05/2011_ Permitir temificação do tabuleiro
-- _06/05/2011_ Tirar o desenho do jogo da home e substitui-lo por um instância do tabuleiro (não jogável)
-- _08/05/2011_ JQuerificar o Resta1 (tornar um plugin)
+
+- _08/05/2011_ | _Task_: JQuerificar o Resta1 (tornar um plugin)
+- _06/05/2011_ | _Task_: Tirar o desenho do jogo da home e substitui-lo por um instância do tabuleiro (não jogável)
+- _06/05/2011_ | _Task_: Permitir temificação do tabuleiro
+- _06/05/2011_ | _Task_: Criar o modo não jogável, com estado inicial customizado
+- _06/05/2011_ | _Refactor_: Tirar a lista de movimentos do backend
+- _05/05/2011_ | _Refactor_: Colocar o html do tabuleiro como sendo o default do componente (trazer para dentro)
