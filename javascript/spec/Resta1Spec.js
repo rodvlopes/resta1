@@ -36,6 +36,8 @@ describe("Resta1.Tabuleiro", function() {
 		$('body').append(' \
 		<div id="fixture">\
 			<div id="testeAppend"></div>\
+			<div id="testeAppend2"></div>\
+			<div id="testeAppend3"></div>\
 			<table id="tabuleiro">\
 				<tr>\
 					<td class="shore"></td>\
@@ -208,20 +210,24 @@ describe("Resta1.Tabuleiro", function() {
 			expect(Notification.error).toHaveBeenCalledWith("O movimento 1>3 não pode ser executado no estado atual.", "Erro");
 	  });
 	
-		it("deve executar a sequencia grande com sucesso no tabuleiro default", function() {
-			tabuleiro = new Resta1.Tabuleiro({appendTo: 'testeAppend', instantaneo : true});
+		it("deve executar a sequencia mesmo quando existir outras instância no DOM", function() {
+			new Resta1.Tabuleiro({appendTo: 'testeAppend2'});
+			new Resta1.Tabuleiro({appendTo: 'testeAppend3'});
+			
+			tabuleiro = new Resta1.Tabuleiro({appendTo: 'testeAppend'});
 			var sequenciaGrande = '19>17 30>18 27>25 13>27 24>26 22>24 08>22 21>23 23>25 07>21 31>23 32>24 18>30 33>25 24>22 10>24 25>23 12>10 09>11 23>09 21>23 27>25'; 
 			tabuleiro.executarMovimentos(sequenciaGrande);
  
-			tabuleiro._$tabuleiro.find('td').each(function(){
-				var numPecasNaCasa = $(this).find('.peca').size();
-				expect(numPecasNaCasa == 0 || $(this).size() == 1).toBeTruthy();
-			});
+			var casas = tabuleiro._$tabuleiro.find('td').get();
+			for(var i=0; i<casas.length; i++) {
+				var numPecasNaCasa = $(casas[i]).find('.peca').size();
+				console.log(numPecasNaCasa);
+				expect(numPecasNaCasa == 0 || numPecasNaCasa == 1).toBeTruthy();
+			}
 			
 			var numPecaEsperado = 32 - sequenciaGrande.split(' ').length;
 			expect(tabuleiro._$tabuleiro.find('.peca').size()).toEqual(numPecaEsperado);
-	  });
-	
+	  });	
 	});
 	
 	

@@ -276,14 +276,13 @@ var Resta1 = {
 				}
 				
 				var movimento = movimentosParaExecutar.pop();
-				
 				if (!self.movimentoPossivelNoEstadoAtual(movimento)) {
 					Notification.error("O movimento #m não pode ser executado no estado atual.".replace("#m",movimento.de+'>'+movimento.para), "Erro");
 					return;
 				}
 				
-				$elemDragged = $('td[data-spot="'+movimento.de+'"]').children();
-				$elemDrop    = $('td[data-spot="'+movimento.para+'"]');
+				$elemDragged = self._$tabuleiro.find('td[data-spot="'+movimento.de+'"]').children();
+				$elemDrop    = self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]');
 				self.executar(movimento, $elemDragged, $elemDrop, executarRecusivo);
 			})();
 		};
