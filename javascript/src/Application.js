@@ -44,9 +44,7 @@ $(document).ready(function(){
 	
 	$('#copiar-btn').click(function() {
 		$('#copiar-tab').toggle();
-		var sequencia = '';
-		tabuleiro._$listaMovimentos.find('li').each(function(){sequencia += $(this).text() + ' ';});
-		$('#copiar-text').val(sequencia);
+		$('#copiar-text').val(tabuleiro.movimentosExecutadosString());
 		$('#copiar-text').focus().select();
 	});
 		

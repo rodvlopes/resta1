@@ -156,6 +156,12 @@ describe("Resta1.Tabuleiro", function() {
 				);
 			}, 'li ser adicionada na lista de movimentos', 200);
 	  });
+	
+		it("deve recuperar uma string com todos os movimentos", function() {
+			tabuleiro.executarMovimentos('1>3');
+			tabuleiro.executarMovimentos('4>6');
+			expect(tabuleiro.movimentosExecutadosString()).toEqual('1>3 4>6');
+	  });
 	});
 	
 
@@ -221,7 +227,6 @@ describe("Resta1.Tabuleiro", function() {
 			var casas = tabuleiro._$tabuleiro.find('td').get();
 			for(var i=0; i<casas.length; i++) {
 				var numPecasNaCasa = $(casas[i]).find('.peca').size();
-				console.log(numPecasNaCasa);
 				expect(numPecasNaCasa == 0 || numPecasNaCasa == 1).toBeTruthy();
 			}
 			

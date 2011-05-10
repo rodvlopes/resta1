@@ -293,6 +293,17 @@ var Resta1 = {
 			}
 		};
 		
+		this.movimentosExecutadosString = function() {
+			if (!self._$listaMovimentos) {
+				Notification.alert('Uma container para listaMovimentos não foi inicializado com a instância do tabuleiro.', 'Não Existe');
+				return '';
+			}
+			
+			var sequencia = '';
+			self._$listaMovimentos.find('li').each(function(){sequencia += $(this).text() + ' ';});
+			return $.trim(sequencia);
+		}
+		
 		
 		// *** EVENTOS *** //
 		this.eventos = {
