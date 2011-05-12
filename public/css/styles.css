@@ -172,6 +172,7 @@ border: none;
 
 #content p, ul, ol, hr {
 margin-bottom: 24px;
+margin-right: 18px;
 }
 
 #content ul ul, ol ol, ul ol, ol ul {
@@ -347,4 +348,66 @@ aside textarea {
 
 #movimentos li.para-remover {
 	background-color:rgba(255,0,0,0.5)
+}
+
+/*individuos*/
+
+#ag-individuos {
+	height: 172px;
+	width: 100%;
+}
+
+#ag-individuos h3 {
+	color: #999;
+	text-align: center;
+}
+
+#ag-individuos h3 i {
+	color: #666;
+}
+
+#ag-individuos ul, #ag-individuos li {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	list-style: none;
+	vertical-align: baseline;
+}
+
+#ag-individuos li {
+	border: 1px solid gray;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	cursor: default;
+	float: left;
+	margin-right: 12px;
+	margin-bottom: 2px;
+	padding: 0 2px;
+}
+
+#ag-individuos li .fitness {
+		font-size: 36px;
+		text-align: center;
+		padding-top: 10px;
+}
+
+#ag-individuos li .individuo {
+	height: 100%;
+	width: 80px;
+}
+
+#ag-individuos li .individuo td {
+	background-color: #DDD;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	height: 6px;
+}
+
+#ag-individuos li .individuo .peca {
+	cursor: default;
+}
+
+#ag-individuos li .individuo td.shore {
+	background-color: transparent;
+	border: none;
 }

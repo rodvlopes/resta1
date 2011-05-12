@@ -13,6 +13,8 @@ $(document).ready(function(){
 		listaMovimentosId : 'movimentos'
 	}).get(0).tabuleiro;
 	
+	$('#ag-individuos .individuo').resta1({jogavel:false});
+	
 	$('#executar-sequencia-tab, #copiar-tab').hide();
 	
 	//binds
@@ -46,6 +48,15 @@ $(document).ready(function(){
 		$('#copiar-tab').toggle();
 		$('#copiar-text').val(tabuleiro.movimentosExecutadosString());
 		$('#copiar-text').focus().select();
+	});
+	
+	$('#iniciar-ag-btn').click(function() {
+		$(this).text() == 'Iniciar' ? $(this).text('Pausar') : $(this).text('Iniciar');
+	});
+	
+	$('#reset-ag-btn').click(function() {
+		Notification.info('Execução interrompida. Estado resetado.', 'Info');
+		$('#iniciar-ag-btn').text('Iniciar');
 	});
 		
 });

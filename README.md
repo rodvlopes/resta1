@@ -35,17 +35,37 @@ ANDAMENTO
 Backlog (priorizado)
 --------------------
 
-- _Task_: Planejar a implementação do algoritmo genético
+- *Task*: Iniciar a execução do AG e ver os indivíduos de cada geração
 
 
 Done
 ----
 
-- _09/05/2011_ | _Refactor_: Adicionar método para recuperar os movimentos executados na instância
-- _09/05/2011_ | _Bug_: Sequência falha: 19>17 30>18 27>25 13>27 24>26 22>24 08>22 21>23 23>25 07>21 31>23 32>24 18>30 33>25 24>22 10>24 25>23 12>10 09>11 23>09 21>23 27>25 
-- _08/05/2011_ | _Task_: JQuerificar o Resta1 (tornar um plugin)
-- _06/05/2011_ | _Task_: Tirar o desenho do jogo da home e substitui-lo por um instância do tabuleiro (não jogável)
-- _06/05/2011_ | _Task_: Permitir temificação do tabuleiro
-- _06/05/2011_ | _Task_: Criar o modo não jogável, com estado inicial customizado
-- _06/05/2011_ | _Refactor_: Tirar a lista de movimentos do backend
-- _05/05/2011_ | _Refactor_: Colocar o html do tabuleiro como sendo o default do componente (trazer para dentro)
+- _11/05/2011_ | *Task*: Implementar html/css básico para o AG
+- _10/05/2011_ | *Task*: Planejar a implementação do algoritmo genético
+- _09/05/2011_ | *Refactor*: Adicionar método para recuperar os movimentos executados na instância
+- _09/05/2011_ | *Bug*: Sequência falha: 19>17 30>18 27>25 13>27 24>26 22>24 08>22 21>23 23>25 07>21 31>23 32>24 18>30 33>25 24>22 10>24 25>23 12>10 09>11 23>09 21>23 27>25 
+- _08/05/2011_ | *Task*: JQuerificar o Resta1 (tornar um plugin)
+- _06/05/2011_ | *Task*: Tirar o desenho do jogo da home e substitui-lo por um instância do tabuleiro (não jogável)
+- _06/05/2011_ | *Task*: Permitir temificação do tabuleiro
+- _06/05/2011_ | *Task*: Criar o modo não jogável, com estado inicial customizado
+- _06/05/2011_ | *Refactor*: Tirar a lista de movimentos do backend
+- _05/05/2011_ | *Refactor*: Colocar o html do tabuleiro como sendo o default do componente (trazer para dentro)
+
+
+Brainstorm AG
+-------------
+
+Configurações: 
+	- Tamanho da população
+	- Função Afinidade (estudar possibilidades)
+	- Taxas de mutação e crossover
+	
+Ações:
+	- Pausar execução
+	- Exibir indivíduos da geraração atual
+	- Indivíduos exibidos na tela são executáveis no palco
+	
+Visualizar:
+	- Lista de indivíduos de uma geração com sua fitness
+	- Gráfico de evolução (fitness média / fitness melhor x geração)
