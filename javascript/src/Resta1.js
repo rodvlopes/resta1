@@ -422,6 +422,10 @@ Resta1.Tabuleiro.MovimentosDefault = [["01","02","03"],["01","04","09"],["02","0
 		return this.each(function() {
 			var $this = $(this);
 			
+			settings.execucaoInicial = $this.find('.execucaoInicial').html();
+			if (settings.execucaoInicial)
+				settings.execucaoInicial = settings.execucaoInicial.replace(/&gt;/g, '>');
+			
 			if ($this.find('table').size() > 0) 
 					settings.id = $this.find('table').get(0);
 			else

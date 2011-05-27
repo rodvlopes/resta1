@@ -1,6 +1,26 @@
 var tabuleiro;
+var ag;
 
 $(document).ready(function(){
+	
+	ag = new AG({
+		progresso : function(estado) {
+			$('#geracao-num').html(estado.geracao);
+			$('#melhor-individuo-fitness').html(estado.melhorIndividuo.fitness);
+			$('#pior-individuo-fitness').html(estado.piorIndividuo.fitness);
+			
+			var estadoIndividuoTemplate = '<li><div class="fitness">#F</div><div class="individuo"><span class="execucaoInicial">#I</span></div></li>';
+			
+			$('#ag-individuos ul').html('');
+			
+			for(var i in estado.amostra) {
+				var individuo = estado.amostra[i];
+				var individuoLi = estadoIndividuoTemplate.replace('#F', individuo.fitness).replace('#I', individuo.genoma);
+				$('#ag-individuo ul').append(individuoLi);
+			}
+			$('#ag-individuos .individuo').resta1({jogavel:false});
+		}
+	});
 
 	var tabuleiroHeader = $('#tabuleiro-header').resta1({jogavel : false}).get(0).tabuleiro;
 	
@@ -13,9 +33,7 @@ $(document).ready(function(){
 		listaMovimentosId : 'movimentos'
 	}).get(0).tabuleiro;
 	
-	$('#ag-individuos .individuo').resta1({jogavel:false});
-	
-	$('#executar-sequencia-tab, #copiar-tab').hide();
+	$('#executar-sequencia-tab, #copiar-tab, #ag-individuos').hide();
 	
 	//binds
 	$('#reiniciar-btn').click(function() {
@@ -51,10 +69,19 @@ $(document).ready(function(){
 	});
 	
 	$('#iniciar-ag-btn').click(function() {
-		$(this).text() == 'Iniciar' ? $(this).text('Pausar') : $(this).text('Iniciar');
+		if ($(this).text() == 'Iniciar') {
+	 		$(this).text('Pausar');
+			ag.pausar();
+		}
+		else {
+			$(this).text('Iniciar');
+			$('#ag-individuos').show('fast');
+			ag.iniciar();
+		} 
 	});
 	
 	$('#reset-ag-btn').click(function() {
+		ag.reset();
 		Notification.info('Execução interrompida. Estado resetado.', 'Info');
 		$('#iniciar-ag-btn').text('Iniciar');
 	});

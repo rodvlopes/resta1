@@ -251,6 +251,7 @@ describe("JQuery.resta1", function() {
 		$('body').append(' \
 		<div id="fixture">\
 			<div id="tabuleiro"></div>\
+			<div id="tabuleiroComExecucaoInicial"><span class="execucaoInicial">19>17 30>18 11>25 13>11 27>13 25>27</span></div>\
 			<div id="tabuleiro2">\
 				<table>\
 					<tr>\
@@ -289,5 +290,10 @@ describe("JQuery.resta1", function() {
 	it("deve aceitar parametros de configuracao", function(){
 		$('#tabuleiro').resta1({tema: 'azul'});
 		expect($('#tabuleiro .azul').size()).toEqual(1);
+	});
+		
+	it("deve ler execucaoInicial de dentro do elemento", function(){
+		$('#tabuleiroComExecucaoInicial').resta1();
+		expect($('#tabuleiroComExecucaoInicial').find('.peca').size()).toEqual(26);
 	});
 });
