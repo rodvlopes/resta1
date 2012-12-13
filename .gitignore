@@ -1,4 +1,5 @@
 .bundle
+.c9revisions
 log/*.log
 tmp/
 .rvmrc
