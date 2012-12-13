@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+	 
+	svg {
+	  float: left;
+	  border: solid 1px #aaa;
+	}
+	
+	circle {
+		stroke : grey;
+		stroke-width : 2;
+		fill: brown;
+	}
+	
+	circle.selected {
+		stroke : green;
+	}
+	
+	circle.empty {
+		fill: none;
+	}
+	
+	
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="http://mbostock.github.com/d3/d3.js?2.7.1"></script>
+<body>
+<script>
+ 
+var width = $('body').width(),
+	height = $(window).height()-20,
+	slotw = Math.floor(width/7), 
+	dslotw = Math.floor(slotw/2), 
+	sloth = Math.floor(height/7),
+	dsloth = Math.floor(sloth/2),
+	radius = Math.floor(0.35 * Math.min(slotw, sloth));
+
+
+var board = [
+	{x: 2*slotw, y:0}, {x:3*slotw, y:0}, {x:4*slotw, y:0},
+	{x: 2*slotw, y:sloth}, {x:3*slotw, y:sloth}, {x:4*slotw, y:sloth},
+	{x:0, y:2*sloth}, {x:1*slotw, y:2*sloth}, {x:2*slotw, y:2*sloth}, {x:3*slotw, y:2*sloth}, {x:4*slotw, y:2*sloth}, {x:5*slotw, y:2*sloth}, {x:6*slotw, y:2*sloth},
+	{x:0, y:3*sloth}, {x:1*slotw, y:3*sloth}, {x:2*slotw, y:3*sloth}, {x:3*slotw, y:3*sloth}, {x:4*slotw, y:3*sloth}, {x:5*slotw, y:3*sloth}, {x:6*slotw, y:3*sloth},
+	{x:0, y:4*sloth}, {x:1*slotw, y:4*sloth}, {x:2*slotw, y:4*sloth}, {x:3*slotw, y:4*sloth}, {x:4*slotw, y:4*sloth}, {x:5*slotw, y:4*sloth}, {x:6*slotw, y:4*sloth},
+	{x: 2*slotw, y:5*sloth}, {x:3*slotw, y:5*sloth}, {x:4*slotw, y:5*sloth},
+	{x: 2*slotw, y:6*sloth}, {x:3*slotw, y:6*sloth}, {x:4*slotw, y:6*sloth}
+]
+
+board.forEach(function(elem, i){ elem.x += dslotw, elem.y += dsloth, elem.empty = i==16});
+
+console.log(board);
+ 
+ 
+var svg = d3.select("body").append("svg")
+		  .attr("width", width)
+		  .attr("height", height);
+
+var slotCircles = svg.selectAll("svg")
+	.data(board).enter()
+	.append("circle")
+	.attr("class", function(d) { return d.empty ? 'empty' : ''; })
+	.attr("r", radius)
+	.attr("cx", function(d) { return d.x; })
+	.attr("cy", function(d) { return d.y; })
+	.on('click', function(d){ 
+		d3.select(this).attr('class', 'selected');
+		//se for pino e estiver selecionado, deseleciona
+		//senao, seleciona
+		
+		//se nao for pino, é destino
+		
+		// 
+	});
+
+ 
+function dragmove(d) {
+	console.log(d, this, d3.event)
+  d3.select(this)
+	  .attr("cx", d.x = Math.max(radius, Math.min(width - radius, d3.event.x)))
+	  .attr("cy", d.y = Math.max(radius, Math.min(height - radius, d3.event.y)));
+}
+ 
+</script>
