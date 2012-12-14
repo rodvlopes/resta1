@@ -1,147 +1,331 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<style>
-     
-	svg {
-	  float: left;
-	  border: solid 1px #aaa;
-	}
+<html>
+    <head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Resta 1</title>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+		<script src="http://mbostock.github.com/d3/d3.js?2.7.1"></script>
+
+		<style>
+			 
+			svg {
+			  float: left;
+			  border: solid 1px #aaa;
+			}
+			
+			svg text {
+				fill: #ccc;
+				font-size: 0.8em;
+				cursor:default;
+			}
+			
+			svg text.score {
+				fill: #999;
+				font-size: 1em;
+			}
+			
+			circle {
+				stroke : grey;
+				stroke-width : 3px;
+				fill: brown;
+			}
+			
+			circle.selected {
+				fill: #900000;
+				stroke : red;
+			}
+			
+			circle.empty {
+				fill: white;
+			}
+			
+			circle.destination {
+				fill: #E0FFE4;
+				stroke : green;
+			}
+			
+		</style>
+	</head>
+	 
+	<body>
 	
-	circle {
-		stroke : grey;
-		stroke-width : 3;
-		fill: brown;
-	}
-	
-	circle.selected {
-		fill: #900000;
-		stroke : red;
-	}
-	
-	circle.empty {
-		fill: white;
-	}
-	
-	circle.destination {
-		fill: #E0FFE4;
-		stroke : green;
-	}
-	
-</style>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-<script src="http://mbostock.github.com/d3/d3.js?2.7.1"></script>
-<body>
-<script>
+	<script>
  
-var width = $('body').width(),
-	height = $(window).height()-20,
-	slotw = Math.floor(width/7), 
-	dslotw = Math.floor(slotw/2), 
-	sloth = Math.floor(height/7),
-	dsloth = Math.floor(sloth/2),
-	radius = Math.floor(0.35 * Math.min(slotw, sloth));
-	
-var sequence = '';
+		var width = $('body').width(),
+			height = $(window).height()-20,
+			slotw = Math.floor(width/7), 
+			dslotw = Math.floor(slotw/2), 
+			sloth = Math.floor(height/7),
+			dsloth = Math.floor(sloth/2),
+			radius = Math.floor(0.35 * Math.min(slotw, sloth));
+		
+			
+		var validMoves = [[0,1,2],[0,3,8],[1,4,9],[2,1,0],[2,5,10],[3,4,5],[3,8,15],[4,9,16],[5,4,3],[5,10,17],[6,7,8],[6,13,20],[7,8,9],[7,14,21],[8,3,0],[8,7,6],[8,9,10],[8,15,22],[9,4,1],[9,8,7],[9,10,11],[9,16,23],[10,5,2],[10,9,8],[10,11,12],[10,17,24],[11,10,9],[11,18,25],[12,11,10],[12,19,26],[13,14,15],[14,15,16],[15,8,3],[15,14,13],[15,16,17],[15,22,27],[16,9,4],[16,15,14],[16,17,18],[16,23,28],[17,10,5],[17,16,15],[17,18,19],[17,24,29],[18,17,16],[19,18,17],[20,13,6],[20,21,22],[21,14,7],[21,22,23],[22,15,8],[22,21,20],[22,23,24],[22,27,30],[23,16,9],[23,22,21],[23,24,25],[23,28,31],[24,17,10],[24,23,22],[24,25,26],[24,29,32],[25,18,11],[25,24,23],[26,19,12],[26,25,24],[27,22,15],[27,28,29],[28,23,16],[29,24,17],[29,28,27],[30,27,22],[30,31,32],[31,28,23],[32,29,24],[32,31,30]];
 
-var validMoves = [[0,1,2],[0,3,8],[1,4,9],[2,1,0],[2,5,10],[3,4,5],[3,8,15],[4,9,16],[5,4,3],[5,10,17],[6,7,8],[6,13,20],[7,8,9],[7,14,21],[8,3,0],[8,7,6],[8,9,10],[8,15,22],[9,4,1],[9,8,7],[9,10,11],[9,16,23],[10,5,2],[10,9,8],[10,11,12],[10,17,24],[11,10,9],[11,18,25],[12,11,10],[12,19,26],[13,14,15],[14,15,16],[15,8,3],[15,14,13],[15,16,17],[15,22,27],[16,9,4],[16,15,14],[16,17,18],[16,23,28],[17,10,5],[17,16,15],[17,18,19],[17,24,29],[18,17,16],[19,18,17],[20,13,6],[20,21,22],[21,14,7],[21,22,23],[22,15,8],[22,21,20],[22,23,24],[22,27,30],[23,16,9],[23,22,21],[23,24,25],[23,28,31],[24,17,10],[24,23,22],[24,25,26],[24,29,32],[25,18,11],[25,24,23],[26,19,12],[26,25,24],[27,22,15],[27,28,29],[28,23,16],[29,24,17],[29,28,27],[30,27,22],[30,31,32],[31,28,23],[32,29,24],[32,31,30]];
+		var board = [
+			{x: 2*slotw, y:0}, {x:3*slotw, y:0}, {x:4*slotw, y:0},
+			{x: 2*slotw, y:sloth}, {x:3*slotw, y:sloth}, {x:4*slotw, y:sloth},
+			{x:0, y:2*sloth}, {x:1*slotw, y:2*sloth}, {x:2*slotw, y:2*sloth}, {x:3*slotw, y:2*sloth}, {x:4*slotw, y:2*sloth}, {x:5*slotw, y:2*sloth}, {x:6*slotw, y:2*sloth},
+			{x:0, y:3*sloth}, {x:1*slotw, y:3*sloth}, {x:2*slotw, y:3*sloth}, {x:3*slotw, y:3*sloth}, {x:4*slotw, y:3*sloth}, {x:5*slotw, y:3*sloth}, {x:6*slotw, y:3*sloth},
+			{x:0, y:4*sloth}, {x:1*slotw, y:4*sloth}, {x:2*slotw, y:4*sloth}, {x:3*slotw, y:4*sloth}, {x:4*slotw, y:4*sloth}, {x:5*slotw, y:4*sloth}, {x:6*slotw, y:4*sloth},
+			{x: 2*slotw, y:5*sloth}, {x:3*slotw, y:5*sloth}, {x:4*slotw, y:5*sloth},
+			{x: 2*slotw, y:6*sloth}, {x:3*slotw, y:6*sloth}, {x:4*slotw, y:6*sloth}
+		]
 
-var board = [
-	{x: 2*slotw, y:0}, {x:3*slotw, y:0}, {x:4*slotw, y:0},
-	{x: 2*slotw, y:sloth}, {x:3*slotw, y:sloth}, {x:4*slotw, y:sloth},
-	{x:0, y:2*sloth}, {x:1*slotw, y:2*sloth}, {x:2*slotw, y:2*sloth}, {x:3*slotw, y:2*sloth}, {x:4*slotw, y:2*sloth}, {x:5*slotw, y:2*sloth}, {x:6*slotw, y:2*sloth},
-	{x:0, y:3*sloth}, {x:1*slotw, y:3*sloth}, {x:2*slotw, y:3*sloth}, {x:3*slotw, y:3*sloth}, {x:4*slotw, y:3*sloth}, {x:5*slotw, y:3*sloth}, {x:6*slotw, y:3*sloth},
-	{x:0, y:4*sloth}, {x:1*slotw, y:4*sloth}, {x:2*slotw, y:4*sloth}, {x:3*slotw, y:4*sloth}, {x:4*slotw, y:4*sloth}, {x:5*slotw, y:4*sloth}, {x:6*slotw, y:4*sloth},
-	{x: 2*slotw, y:5*sloth}, {x:3*slotw, y:5*sloth}, {x:4*slotw, y:5*sloth},
-	{x: 2*slotw, y:6*sloth}, {x:3*slotw, y:6*sloth}, {x:4*slotw, y:6*sloth}
-]
+		board.forEach(function(spot, i){ 
+			//Adiciona o deslocamento para centralizar o círculo
+			spot.x += dslotw, spot.y += dsloth,
+			
+			//Determina que o slot 16 está vazio incialmente 
+			spot.state = i==16 ? 'empty' : '';
+			
+			//Movimentos válidos deste slot
+			spot.validMoves = validMoves.filter(function(m) { return i==m[0] });
+			
+			//Função que determina os movimentos válidos no estado atual
+			spot.validMovesNow = function(){ return spot.validMoves.filter(function(m){ 
+				return !board[m[0]].empty() && !board[m[1]].empty() && board[m[2]].empty() 
+			}) };
+			
+			spot.empty = function(){return spot.state == 'empty' || spot.state == 'destination';}
+			
+			spot.destination = function(){return spot.state == 'destination';}
+			
+			spot.selected = function(){return spot.state == 'selected';}
+			
+			spot.cleanState = function() { 
+				switch(spot.state) {
+					case 'selected': 	spot.state = ''; 	  break;
+					case 'destination': spot.state = 'empty'; break;
+				} 
+			}
+			
+			spot.runMove = function(m) { /*spot é o destinatário*/
+				var m = m || spot.refMove;
+				
+				if (board[m[0]].validMovesNow().indexOf(m) > -1) {
+					spot.state = '';
+					board[m[1]].state = 'empty';
+					board[m[0]].state = 'empty';
+					var moveIndex = validMoves.indexOf(m).toString();
+					board.sequence.push(moveIndex);
+					console.log('Movimentos executados até agora: ', board.sequence.toString());
+				}
+				else {
+					console.log('Este movimento não pode ser executado agora. ', m.toString());
+				} 
+			}
+		});
 
-board.forEach(function(spot, i){ 
-	//Adiciona o deslocamento para centralizar o círculo
-	spot.x += dslotw, spot.y += dsloth,
-	
-	//Determina que o slot 16 está vazio incialmente 
-	spot.state = i==16 ? 'empty' : '';
-	
-	//Movimentos válidos deste slot
-	spot.validMoves = validMoves.filter(function(m) { return i==m[0] });
-	
-	//Função que determina se o movimento pode ser executado no estado atual
-	spot.validMovesNow = function(){ return spot.validMoves.filter(function(m){ return !board[m[0]].empty() && !board[m[1]].empty() && board[m[2]].empty() }) };
-	
-	spot.empty = function(){return spot.state == 'empty' || spot.state == 'destination';}
-	
-	spot.destination = function(){return spot.state == 'destination';}
-	
-	spot.selected = function(){return spot.state == 'selected';}
-	
-	spot.cleanState = function() { 
-		switch(spot.state) {
-			case 'selected': 	spot.state = ''; 	  break;
-			case 'destination': spot.state = 'empty'; break;
+		board.sequence = [];
+		board.sequence.toString = function() { return this.map(function(mi){ mi = mi.toString(); return mi.length == 1 ? '0'+mi : mi }).toString(); }
+
+		board.score = function() { return 33 - board.sequence.length; }
+
+
+		board.cleanState = function() {
+			board.forEach(function(spot) { spot.cleanState(); });
+		}
+
+		board.selectedSpot = function() {
+			return board.filter(function(spot) { return spot.selected() })[0];
+		}
+
+		board.selectSpot = function(spot) {
+			spot.state = 'selected';
+			spot.validMovesNow().forEach(function(m) {
+				board[m[2]].state = 'destination';
+				board[m[2]].refMove = m;
+			});
+		}
+
+		board.runSequence = function(sequence) {
+			var seqArr = $.trim(sequence).split(/ *, */).filter(function(m){ return typeof(m) == 'string' && m.length == 2; });
+			
+			seqArr.forEach(function(mi){
+				var m = validMoves[parseInt(mi)];
+				console.log('Executando movimento', mi + ': '+ m.toString());
+				board[m[2]].runMove(m);
+			});
+			
+			updateView();
 		} 
-	}
+		 
+		var svg = d3.select("body").append("svg")
+				  .attr("width", width)
+				  .attr("height", height);
+
+			
+		var g = svg.selectAll("g.node")
+			.data(board).enter()
+			.append("svg:g")
+			.attr("class", "node")
+			.attr("transform", function(d) { return "translate(" + d.x + ","+ d.y + ")"; })
+			.on('click', function(spot){ 
+			if (spot.destination()) {
+				//execuar ação de comer
+				spot.runMove();
+				board.cleanState();
+				updateView();
+			}
+			else if (spot.empty()) {
+				//não faz nada
+			}
+			else {
+				//limpa estado e seleciona
+				board.cleanState();
+				board.selectSpot(spot);
+				updateView();
+			}
+		});
+
+		g.append("svg:circle")
+			.attr("class", function(spot) { return spot.state; })
+			.attr("r", radius)
+			
+
+		g.append("svg:text")
+			.attr("x", "-0.5em")
+			.attr("dy", ".31em")
+			.text(function(d, i) { return i.toString().length == 1 ? '0'+i : i; });
+		
+		  
+		svg.append("svg:text")
+			.attr("x", width-100)
+			.attr("y", height-30+'px')
+			.attr("class", 'score')
+			.text(function() { return 'Resta ' + board.score()});
+			  
+			
+
+		function updateView() {
+			svg.selectAll("circle")
+				.data(board)
+				.attr("class", function(d) { return d.state; });
+			
+			svg.select(".score")
+				.text(function() { return 'Resta ' + board.score()});
+		} 
+
+		//board.runSequence('07,26,36,68,58,62,74,34,43,72,74,26,04,20,28,64,02,20,28,12,01,66,48,17,10,46,19,10');
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		/***************** AG.js *******************/
+var AG = {
+	Execucao : function(params) {
+		// {
+		// 		genes : ['0', '1', '2'],
+		// 		tamanhoGenoma : 3,
+		// 		tamanhoPopulacao : 10,
+		// 		geracaoFinal : 10,
+		// 		
+		// 		funcaoAfinidade : function(individuo)
+		// 	}
 	
-	spot.runMove = function() { /*spot é o destinatário*/
-		spot.state = '';
-		board[spot.refMove[1]].state = 'empty';
-		board[spot.refMove[0]].state = 'empty';
-		var moveIndex = validMoves.indexOf(spot.refMove).toString();
-		sequence += (sequence.length == 0 ? '' :  ',') + (moveIndex.length == 1 ? '0'+moveIndex : moveIndex);
-		console.log(sequence); 
+		var self = this;
+		self._params = params;
+	
+		function init() {
+		
+			self._gerarPopulacaoInicial();
+		
+		}
+		
+		self._gerarPopulacaoInicial = function() {
+			var comprimento 	= self._params.tamanhoGenoma;
+			var numIndividuos = self._params.tamanhoPopulacao;
+			var genes 				= self._params.genes;
+			self._populacao = AG.Helper.gerarIndividuos(numIndividuos, genes, comprimento);
+		}
+		
+		/************** PUBLICO **************/
+		self.iniciar = function() {
+			
+		}
+		
+		self.amostra = function() {
+			return new AG.Amostra({
+				populacao: self._populacao,
+				tamanho: 6,
+				geracao: 10
+			});
+		}
+	
+		init();
+	
+	},
+	
+	Individuo : function(genoma) {
+		this.genoma = '';
+		this.fitness = 0;
+		
+		if (typeof(genoma) == 'string') this.genoma = genoma
+	},
+	
+	Amostra : function(params) {
+		this.geracao = 0;
+		var populacao = [];
+		var tamanho = 0;
+		
+		if (typeof(params) == 'object') {
+			if (typeof(params.geracao) == 'number') this.geracao = params.geracao;
+			if (typeof(params.populacao) == 'object') populacao = params.populacao;
+			if (typeof(params.tamanho) == 'number') tamanho = params.tamanho;
+		}
+		
+		populacao.sort(function(a,b){return a.fitness - b.fitness});
+		
+		this.piorIndividuo = populacao.shift()
+		this.melhorIndividuo = populacao.pop();
+		
+		this.push(this.piorIndividuo);
+		for (var i=0; i<(tamanho-2); i++) {
+			var rand = Math.floor(Math.random()*populacao.length);
+			this.push(populacao.splice(rand,1)[0]);
+		}
+		this.push(this.melhorIndividuo);
+		
+		this.sort(function(a,b){return a.fitness - b.fitness});
+	},
+	
+	Helper : {
+		
+		gerarIndividuos : function(individuosNum, genes, comprimento) {
+			var individuos = [];
+			for (var i=0; i<individuosNum; i++) {
+				var genoma = '';
+				for (var j=0; j<comprimento; j++){
+					genoma += genes[Math.floor(Math.random()*genes.length)];
+				}
+				individuos.push(new AG.Individuo(genoma));	
+			}
+			return individuos;
+		}
+		
 	}
-});
-
-
-board.cleanState = function() {
-	board.forEach(function(spot) { spot.cleanState(); });
 }
 
-board.selectedSpot = function() {
-	return board.filter(function(spot) { return spot.selected() })[0];
-}
+AG.Amostra.prototype = new Array;
 
-board.selectSpot = function(spot) {
-	spot.state = 'selected';
-	spot.validMovesNow().forEach(function(m) {
-		board[m[2]].state = 'destination';
-		board[m[2]].refMove = m;
-	});
-}
- 
-var svg = d3.select("body").append("svg")
-		  .attr("width", width)
-		  .attr("height", height);
+		</script>
 
-var slotCircles = svg.selectAll("svg")
-	.data(board).enter()
-	.append("circle")
-	.attr("class", function(spot) { return spot.state; })
-	.attr("r", radius)
-	.attr("cx", function(spot) { return spot.x; })
-	.attr("cy", function(spot) { return spot.y; })
-	.on('click', function(spot){ 
-		if (spot.destination()) {
-			//execuar ação de comer
-			spot.runMove();
-			board.cleanState();
-			updateView();
-		}
-		else if (spot.empty()) {
-			//não faz nada
-		}
-		else {
-			//limpa estado e seleciona
-			board.cleanState();
-			board.selectSpot(spot);
-			updateView();
-		}
-	});
+	</body>
+</html>
 
-
-function updateView() {
-	var slotCircles = svg.selectAll("circle")
-	.data(board)
-	.attr("class", function(d) { return d.state; });
-} 
-  
-</script>
