@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Resta 1</title>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+		<script src="http://mbostock.github.com/d3/d3.js?2.7.1"></script>
+        <script src="js/src/Utils.js"></script>
+
+		<style>
+			 
+			svg {
+			  float: left;
+			  border: solid 1px #aaa;
+			}
+			
+			svg text {
+				fill: #ccc;
+				font-size: 0.8em;
+				cursor:default;
+			}
+			
+			svg text.score {
+				fill: #999;
+				font-size: 1em;
+			}
+			
+			circle {
+				stroke : grey;
+				stroke-width : 3px;
+				fill: brown;
+			}
+			
+			circle.selected {
+				fill: #900000;
+				stroke : red;
+			}
+			
+			circle.empty {
+				fill: white;
+			}
+			
+			circle.destination {
+				fill: #E0FFE4;
+				stroke : green;
+			}
+			
+		</style>
+	</head>
+	 
+	<body>
+	
+	<script>
+ 
+		var width = $('body').width(),
+			height = $(window).height()-20,
+			slotw = Math.floor(width/7), 
+			dslotw = Math.floor(slotw/2), 
+			sloth = Math.floor(height/7),
+			dsloth = Math.floor(sloth/2),
+			radius = Math.floor(0.35 * Math.min(slotw, sloth));
+		
+			
+		var validMoves = [[0,1,2],[0,3,8],[1,4,9],[2,1,0],[2,5,10],[3,4,5],[3,8,15],[4,9,16],[5,4,3],[5,10,17],[6,7,8],[6,13,20],[7,8,9],[7,14,21],[8,3,0],[8,7,6],[8,9,10],[8,15,22],[9,4,1],[9,8,7],[9,10,11],[9,16,23],[10,5,2],[10,9,8],[10,11,12],[10,17,24],[11,10,9],[11,18,25],[12,11,10],[12,19,26],[13,14,15],[14,15,16],[15,8,3],[15,14,13],[15,16,17],[15,22,27],[16,9,4],[16,15,14],[16,17,18],[16,23,28],[17,10,5],[17,16,15],[17,18,19],[17,24,29],[18,17,16],[19,18,17],[20,13,6],[20,21,22],[21,14,7],[21,22,23],[22,15,8],[22,21,20],[22,23,24],[22,27,30],[23,16,9],[23,22,21],[23,24,25],[23,28,31],[24,17,10],[24,23,22],[24,25,26],[24,29,32],[25,18,11],[25,24,23],[26,19,12],[26,25,24],[27,22,15],[27,28,29],[28,23,16],[29,24,17],[29,28,27],[30,27,22],[30,31,32],[31,28,23],[32,29,24],[32,31,30]];
+
+		var board = [
+			{x: 2*slotw, y:0}, {x:3*slotw, y:0}, {x:4*slotw, y:0},
+			{x: 2*slotw, y:sloth}, {x:3*slotw, y:sloth}, {x:4*slotw, y:sloth},
+			{x:0, y:2*sloth}, {x:1*slotw, y:2*sloth}, {x:2*slotw, y:2*sloth}, {x:3*slotw, y:2*sloth}, {x:4*slotw, y:2*sloth}, {x:5*slotw, y:2*sloth}, {x:6*slotw, y:2*sloth},
+			{x:0, y:3*sloth}, {x:1*slotw, y:3*sloth}, {x:2*slotw, y:3*sloth}, {x:3*slotw, y:3*sloth}, {x:4*slotw, y:3*sloth}, {x:5*slotw, y:3*sloth}, {x:6*slotw, y:3*sloth},
+			{x:0, y:4*sloth}, {x:1*slotw, y:4*sloth}, {x:2*slotw, y:4*sloth}, {x:3*slotw, y:4*sloth}, {x:4*slotw, y:4*sloth}, {x:5*slotw, y:4*sloth}, {x:6*slotw, y:4*sloth},
+			{x: 2*slotw, y:5*sloth}, {x:3*slotw, y:5*sloth}, {x:4*slotw, y:5*sloth},
+			{x: 2*slotw, y:6*sloth}, {x:3*slotw, y:6*sloth}, {x:4*slotw, y:6*sloth}
+		]
+
+		board.forEach(function(spot, i){ 
+			//Adiciona o deslocamento para centralizar o círculo
+			spot.x += dslotw, spot.y += dsloth,
+			
+			//Determina que o slot 16 está vazio incialmente 
+			spot.state = i==16 ? 'empty' : '';
+			
+			//Movimentos válidos deste slot
+			spot.validMoves = validMoves.filter(function(m) { return i==m[0] });
+			
+			//Função que determina os movimentos válidos no estado atual
+			spot.validMovesNow = function(){ return spot.validMoves.filter(function(m){ 
+				return !board[m[0]].empty() && !board[m[1]].empty() && board[m[2]].empty() 
+			}) };
+			
+			spot.empty = function(){return spot.state == 'empty' || spot.state == 'destination';}
+			
+			spot.destination = function(){return spot.state == 'destination';}
+			
+			spot.selected = function(){return spot.state == 'selected';}
+			
+			spot.cleanState = function() { 
+				switch(spot.state) {
+					case 'selected': 	spot.state = ''; 	  break;
+					case 'destination': spot.state = 'empty'; break;
+				} 
+			}
+			
+			spot.runMove = function(m) { /*spot é o destinatário*/
+				var m = m || spot.refMove;
+				
+				if (board[m[0]].validMovesNow().indexOf(m) > -1) {
+					spot.state = '';
+					board[m[1]].state = 'empty';
+					board[m[0]].state = 'empty';
+					var moveIndex = validMoves.indexOf(m).toString();
+					board.sequence.push(moveIndex);
+					console.log('Movimentos executados até agora: ', board.sequence.toString());
+				}
+				else {
+					console.log('Este movimento não pode ser executado agora. ', m.toString());
+				} 
+			}
+		});
+
+		board.sequence = [];
+		board.sequence.toString = function() { return this.map(function(mi){ mi = mi.toString(); return mi.length == 1 ? '0'+mi : mi }).toString(); }
+
+		board.score = function() { return 32 - board.sequence.length; }
+
+
+		board.cleanState = function() {
+			board.forEach(function(spot) { spot.cleanState(); });
+		}
+
+		board.selectedSpot = function() {
+			return board.filter(function(spot) { return spot.selected() })[0];
+		}
+
+		board.selectSpot = function(spot) {
+			spot.state = 'selected';
+			spot.validMovesNow().forEach(function(m) {
+				board[m[2]].state = 'destination';
+				board[m[2]].refMove = m;
+			});
+		}
+
+        //Aceita sequencias separadas por virgulas ou nao
+		board.runSequence = function(sequence, animate) {
+            if (sequence.contains(','))
+			    var seqArr = $.trim(sequence).split(/ *, */).filter(function(m){ return typeof(m) == 'string' && m.length == 2; });
+            else
+                var seqArr = sequence.match(/.{2}/g);
+			
+            if (animate) {
+                seqArr.forEach(function(mi,i){
+                    setTimeout(function(){
+            			var m = validMoves[parseInt(mi)];
+        				console.log('Executando movimento', mi + ': '+ m.toString());
+        				board[m[2]].runMove(m);
+                        updateView();
+                    }, 500*i);
+    			});
+
+            }
+            else {
+    			seqArr.forEach(function(mi){
+    				var m = validMoves[parseInt(mi)];
+    				console.log('Executando movimento', mi + ': '+ m.toString());
+    				board[m[2]].runMove(m);
+    			});
+                
+                updateView();
+            }
+			
+		} 
+        
+        
+        board.undoLastMove = function() {
+            if (board.sequence.length > 0) {
+                var lastMove = validMoves[board.sequence.pop()];
+                board[lastMove[2]].state = 'empty';
+				board[lastMove[1]].state = '';
+				board[lastMove[0]].state = '';
+				console.log('Movimentos executados até agora: ', board.sequence.toString());
+                updateView();
+			}
+        }
+            
+            
+		 
+		var svg = d3.select("body").append("svg")
+				  .attr("width", width)
+				  .attr("height", height);
+
+			
+		var g = svg.selectAll("g.node")
+			.data(board).enter()
+			.append("svg:g")
+			.attr("class", "node")
+			.attr("transform", function(d) { return "translate(" + d.x + ","+ d.y + ")"; })
+			.on('click', function(spot){ 
+			if (spot.destination()) {
+				//execuar ação de comer
+				spot.runMove();
+				board.cleanState();
+				updateView();
+			}
+			else if (spot.empty()) {
+				//não faz nada
+			}
+			else {
+				//limpa estado e seleciona
+				board.cleanState();
+				board.selectSpot(spot);
+				updateView();
+			}
+		});
+
+		g.append("svg:circle")
+			.attr("class", function(spot) { return spot.state; })
+			.attr("r", radius)
+			
+
+		g.append("svg:text")
+			.attr("x", "-0.5em")
+			.attr("dy", ".31em")
+			.text(function(d, i) { return i.toString().length == 1 ? '0'+i : i; });
+		
+		  
+		svg.append("svg:text")
+			.attr("x", width-100)
+			.attr("y", height-30+'px')
+			.attr("class", 'score')
+			.text(function() { return 'Resta ' + board.score()});
+			  
+			
+
+		function updateView() {
+			svg.selectAll("circle")
+				.data(board)
+				.attr("class", function(d) { return d.state; });
+			
+			svg.select(".score")
+				.text(function() { return 'Resta ' + board.score()});
+		} 
+
+		//board.runSequence('07,26,36,68,58,62,74,34,43,72,74,26,04,20,28,64,02,20,28,12,01,66,48,17,10,46,19,10');
+        //31,66,70,71,75,37,06,35,47,55,30,10,32,71,49,43,65,56,29,65,01,09,16,40,02,69,04,44,36,26,07
+		
+		//crtl+z
+        $(window).keypress( function(eventObject) { 
+            if (eventObject.ctrlKey && eventObject.keyCode == 26) {
+                board.undoLastMove();
+            }
+        } );
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		/***************** AG.js *******************/
+var AG = {
+	Execucao : function(config) {
+		// {
+		// 		genes : ['0', '1', '2'],
+		// 		tamanhoGenoma : 3,
+		// 		tamanhoPopulacao : 10,
+		// 		geracaoFinal : 10,
+        //      taxaMutacao : 0.05, //(5%)
+        //      periodoAmostra: 10, //lança um evento com uma amostra a cada x geracoes
+        //      amostraHandler: function(amostra) { ... }
+		// 		
+		// 		funcaoAfinidade : function(individuo) { return 1; } //deve retornar um valor > 0, para selecao estocastica funcionar.
+		// 	}
+	
+		var _this = this;
+	
+		function init() {
+            
+            var defaults = { geracao: 0, taxaMutacao: 0.05, geracaoFinal: 0, periodoAmostra : 10 }
+            $.extend(_this, defaults, config);
+			_this._gerarPopulacaoInicial();
+            _this._calcularFitness();
+		
+		}
+		
+		_this._gerarPopulacaoInicial = function() {
+			_this.populacao = AG.Helper.gerarIndividuos(_this.tamanhoPopulacao, _this.genes, _this.tamanhoGenoma);
+		}
+        
+        _this.novaGeracao = function() {
+            var novaPopulacao = [];
+            _this._normalizarFitness();
+            while(novaPopulacao.length < _this.tamanhoPopulacao) {
+                var casal = _this._selecionarUmCasal();
+                var filho = _this._reproduzir(casal);
+                novaPopulacao.push(filho);
+            }
+            
+            _this.populacao = novaPopulacao;
+            _this._calcularFitness();
+            _this.geracao++;
+		}
+        
+        _this._calcularFitness = function() {
+            _this.populacao.forEach(function(individuo){
+                individuo.fitness = _this.funcaoAfinidade(individuo);
+            });
+        }
+        
+        _this._normalizarFitness = function() {
+            var fitnessAcumulado = 0;
+            _this.populacao.forEach(function(individuo){
+                fitnessAcumulado += individuo.fitness;
+            });
+            
+            _this.populacao.sort(function(a,b){return a.fitness - b.fitness});
+            
+            for (var i = 0; i<_this.populacao.length; i++) {
+                var fitnessNormalizado = _this.populacao[i].fitness / fitnessAcumulado;
+                _this.populacao[i].fitnessNormalizadoAcumulado = fitnessNormalizado;
+                if (i!=0) 
+                    _this.populacao[i].fitnessNormalizadoAcumulado += _this.populacao[i-1].fitnessNormalizadoAcumulado;
+            }
+        }
+        
+        _this._selecionarUmCasal = function() {
+            function selecionarEstocasticamente(populacao, random) {
+                for (var i=0; i<populacao.length; i++) { //tem que varrer do menor para o maior
+                    if (populacao[i].fitnessNormalizadoAcumulado >= random) return populacao[i];
+                }
+            }
+            
+            var r1 = Math.random();
+            var pai = selecionarEstocasticamente(_this.populacao, r1);
+            var r2 = Math.random();
+            var mae = selecionarEstocasticamente(_this.populacao, r2);
+            for (var i=0; mae.genoma == pai.genoma && i<5; i++) { //permiter que pai e mae sejam diferentes
+                mae = selecionarEstocasticamente(_this.populacao, Math.random());
+            }
+            //console.log('selecionando pai', r1, pai.fitnessNormalizadoAcumulado, ' - selecionando mae', r2, mae.fitnessNormalizadoAcumulado);
+            return [pai, mae];
+        }
+        
+        _this._reproduzir = function(casal) {
+            console.assert(casal.length == 2, 'Casal deve ser formado por 2 indivíduos');
+            var pai = casal[0];
+            var mae = casal[1];
+            
+            var tamanhoGene = _this.genes[0].length;
+            var pontoCruzamento = (parseInt(Math.random()*1000)%_this.tamanhoGenoma)*tamanhoGene;
+            var filho = new AG.Individuo(pai.genoma.substr(0,pontoCruzamento) + mae.genoma.substr(pontoCruzamento));
+            
+            (function mutarGenoma(filho) {
+                var chance = Math.random();
+                if (chance < _this.taxaMutacao) {
+                    //filho vai mutar
+                    var posicaoGene = Math.floor(Math.random()*_this.tamanhoGenoma)*tamanhoGene
+                    var novoGene = Math.floor(Math.random()*_this.genes.length);
+                    for (var i=0; i<tamanhoGene; i++)
+                        filho.genoma[posicaoGene+i] = _this.genes[novoGene][i];
+                    console.log('filho mutante. posicaoGene', posicaoGene);
+                }
+            })(filho);
+
+            console.log('pai', pai.genoma, 'mae', mae.genoma, 'filho', filho.genoma, 'cruzamento em', pontoCruzamento);
+            return filho;
+        }
+		
+		/************** PUBLICO **************/
+		_this.iniciar = function() {
+			
+            while(_this.geracaoFinal == 0 || _this.geracao < _this.geracaoFinal) {
+                
+                _this.novaGeracao();
+                console.log('//------------------ GERACAO', _this.geracao, '----------------//');
+                
+                if (_this.geracao % _this.periodoAmostra == 0 && _this.amostraHandler) {
+                    _this.amostraHandler(_this.amostra());
+                }
+                
+            }
+            
+		}
+		
+		_this.amostra = function() {
+			return new AG.Amostra({
+				populacao: _this.populacao,
+				tamanhoAmostra: 6
+			});
+		}
+	
+		init();
+	
+	},
+	
+	Individuo : function(genoma, fitness) {
+		this.genoma = genoma || '';
+		this.fitness = fitness || 0;
+		
+		console.assert(typeof(this.genoma) == 'string', 'genoma tem que ser do tipo string');
+        console.assert(typeof(this.fitness) == 'number', 'fitness tem que ser do tipo number');
+	},
+	
+	Amostra : function(params) {
+        $.extend(true, this, {
+            populacao : [],
+    	    tamanhoAmostra : 0
+        }, params);
+		
+		
+		this.populacao.sort(function(a,b){return a.fitness - b.fitness});
+		
+		this.piorIndividuo   = this.populacao.shift();
+		this.melhorIndividuo = this.populacao.pop();
+		
+        this.push(this.piorIndividuo);
+        this.push(this.melhorIndividuo);
+        
+		for (var i=0; i<(this.tamanhoAmostra-2); i++) {
+			var rand = Math.floor(Math.random()*this.populacao.length);
+			this.push(this.populacao.splice(rand,1)[0]);
+		}
+		
+		this.sort(function(a,b){return a.fitness - b.fitness});
+	},
+	
+	Helper : {
+		
+		gerarIndividuos : function(individuosNum, genes, comprimento) {
+			var individuos = [];
+			for (var i=0; i<individuosNum; i++) {
+				var genoma = '';
+				for (var j=0; j<comprimento; j++){
+					genoma += genes[Math.floor(Math.random()*genes.length)];
+				}
+				individuos.push(new AG.Individuo(genoma));	
+			}
+			return individuos;
+		}
+		
+	}
+}
+
+AG.Amostra.prototype = new Array;
+
+
+
+(function testes(){
+    var config = {
+     		genes : ['0', '1', '2'],
+	 		tamanhoGenoma : 3,
+	 		tamanhoPopulacao : 10,
+	 		geracaoFinal : 10,
+            periodoAmostra: 5,
+            amostraHandler: function(amostra) { console.log(amostra); },
+	 		
+	 		funcaoAfinidade : function(individuo) { 
+                 var acumulador = 0; 
+                 individuo.genoma.split('').forEach(function(s){ acumulador += parseInt(s); });
+                 return acumulador;
+             }
+ 	}
+     
+    var execucao = new AG.Execucao(config);
+    
+    //Testes de Execucao e Individuo
+    console.assert(execucao.populacao.length == 10, 'Tamanho da população deve ser 10');
+    console.assert(execucao.populacao[0].genoma.length == 3, 'Tamanho do genoma dos indiíduos deve ser 3');
+    console.assert(execucao.populacao[0].genoma[0] == '0' ||
+                   execucao.populacao[0].genoma[0] == '1' || 
+                   execucao.populacao[0].genoma[0] == '2', 'Genoma deve ser composto apenas por genes permitidos 0,1 ou 2');
+   
+   //Testes de Amostra
+   execucao.populacao[0].fitness = 100;
+   execucao.populacao[1].fitness = -100;
+   var amostra = execucao.amostra();
+   console.assert(amostra.length == 6,       'Tamanho da amostra tem que ser 6');
+   console.assert(amostra[0].fitness == -100,  'O primeiro indivíduo deve ser o pior');
+   console.assert(amostra[5].fitness == 100, 'O último indivíduo deve ser o melhor');
+   
+   //Testes de aplicao do fitness function
+   config.tamanhoPopulacao = 3;
+   execucao = new AG.Execucao(config);
+   execucao.populacao[0].genoma = '000';
+   execucao.populacao[1].genoma = '001';
+   execucao.populacao[2].genoma = '120';
+   execucao._calcularFitness();
+   execucao._normalizarFitness();
+   console.assert(execucao.populacao[0].fitnessNormalizadoAcumulado == 0,   'Fitness deveria ser 0');
+   console.assert(execucao.populacao[1].fitnessNormalizadoAcumulado == 0.25,'Fitness deveria ser 0.25');
+   console.assert(execucao.populacao[2].fitnessNormalizadoAcumulado == 1,   'Fitness deveria ser 0.75');
+
+   //Testes de seleção e reprodução
+   var casal = execucao._selecionarUmCasal();
+   console.assert(casal.length == 2,   'Casal deve ser formado por 2 indivíduos');
+   var filho = execucao._reproduzir(casal);
+   console.assert(filho.genoma.length == 3, 'Genoma do filho tem que ser do mesmo tamanho dos pais');
+   
+   //Testes de geração de uma nova população
+   var populacaoAnterior = $.extend(true, [], execucao.populacao); //clone
+   execucao.novaGeracao();
+   var novosIndividuosDiferentes = 0;
+   populacaoAnterior.forEach(function(old, i){ if (old.genoma != execucao.populacao[i].genoma) novosIndividuosDiferentes++; });
+   console.assert(execucao.populacao.length == populacaoAnterior.length, 'A nova geração deve ter tantos indivíduos quanto a geracao anterior');
+   console.assert(novosIndividuosDiferentes > 0);
+   
+   execucao.iniciar();
+   console.log('Testes passaram com sucesso.');
+})();
+
+var genes = [];
+for (var i=0; i< validMoves.length; i++) { genes.push( i.toString().length == 1 ? '0'+i : i ); }
+
+var e = new AG.Execucao({
+    genes : genes,
+ 	tamanhoGenoma : 31,
+ 	tamanhoPopulacao : 30,
+ 	geracaoFinal : 100,
+    periodoAmostra: 10,
+    amostraHandler: function(amostra) { console.log(amostra); },
+ 	
+ 	funcaoAfinidade : function(individuo) { 
+         var c = 0; 
+         board.forEach(function(spot){ c+=spot.validMovesNow().length; }); 
+         return c + (33 - board.score());
+    }
+ });
+
+		</script>
+
+	</body>
+</html>
+
