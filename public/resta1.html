@@ -141,20 +141,35 @@
 		}
 
         //Aceita sequencias separadas por virgulas ou nao
-		board.runSequence = function(sequence) {
+		board.runSequence = function(sequence, animate) {
             if (sequence.contains(','))
 			    var seqArr = $.trim(sequence).split(/ *, */).filter(function(m){ return typeof(m) == 'string' && m.length == 2; });
             else
                 var seqArr = sequence.match(/.{2}/g);
 			
-			seqArr.forEach(function(mi){
-				var m = validMoves[parseInt(mi)];
-				console.log('Executando movimento', mi + ': '+ m.toString());
-				board[m[2]].runMove(m);
-			});
+            if (animate) {
+                seqArr.forEach(function(mi,i){
+                    setTimeout(function(){
+            			var m = validMoves[parseInt(mi)];
+        				console.log('Executando movimento', mi + ': '+ m.toString());
+        				board[m[2]].runMove(m);
+                        updateView();
+                    }, 500*i);
+    			});
+
+            }
+            else {
+    			seqArr.forEach(function(mi){
+    				var m = validMoves[parseInt(mi)];
+    				console.log('Executando movimento', mi + ': '+ m.toString());
+    				board[m[2]].runMove(m);
+    			});
+                
+                updateView();
+            }
 			
-			updateView();
 		} 
+        
         
         board.undoLastMove = function() {
             if (board.sequence.length > 0) {
@@ -226,6 +241,7 @@
 		} 
 
 		//board.runSequence('07,26,36,68,58,62,74,34,43,72,74,26,04,20,28,64,02,20,28,12,01,66,48,17,10,46,19,10');
+        //31,66,70,71,75,37,06,35,47,55,30,10,32,71,49,43,65,56,29,65,01,09,16,40,02,69,04,44,36,26,07
 		
 		//crtl+z
         $(window).keypress( function(eventObject) { 
@@ -260,6 +276,8 @@ var AG = {
 		// 		tamanhoPopulacao : 10,
 		// 		geracaoFinal : 10,
         //      taxaMutacao : 0.05, //(5%)
+        //      periodoAmostra: 10, //lança um evento com uma amostra a cada x geracoes
+        //      amostraHandler: function(amostra) { ... }
 		// 		
 		// 		funcaoAfinidade : function(individuo) { return 1; } //deve retornar um valor > 0, para selecao estocastica funcionar.
 		// 	}
@@ -268,9 +286,10 @@ var AG = {
 	
 		function init() {
             
-            var defaults = { geracao: 0, taxaMutacao: 0.05 }
+            var defaults = { geracao: 0, taxaMutacao: 0.05, geracaoFinal: 0, periodoAmostra : 10 }
             $.extend(_this, defaults, config);
 			_this._gerarPopulacaoInicial();
+            _this._calcularFitness();
 		
 		}
 		
@@ -280,7 +299,6 @@ var AG = {
         
         _this.novaGeracao = function() {
             var novaPopulacao = [];
-    		_this._calcularFitness();
             _this._normalizarFitness();
             while(novaPopulacao.length < _this.tamanhoPopulacao) {
                 var casal = _this._selecionarUmCasal();
@@ -289,6 +307,7 @@ var AG = {
             }
             
             _this.populacao = novaPopulacao;
+            _this._calcularFitness();
             _this.geracao++;
 		}
         
@@ -321,8 +340,14 @@ var AG = {
                 }
             }
             
-            var pai = selecionarEstocasticamente(_this.populacao, Math.random());
-            var mae = selecionarEstocasticamente(_this.populacao, Math.random());
+            var r1 = Math.random();
+            var pai = selecionarEstocasticamente(_this.populacao, r1);
+            var r2 = Math.random();
+            var mae = selecionarEstocasticamente(_this.populacao, r2);
+            for (var i=0; mae.genoma == pai.genoma && i<5; i++) { //permiter que pai e mae sejam diferentes
+                mae = selecionarEstocasticamente(_this.populacao, Math.random());
+            }
+            //console.log('selecionando pai', r1, pai.fitnessNormalizadoAcumulado, ' - selecionando mae', r2, mae.fitnessNormalizadoAcumulado);
             return [pai, mae];
         }
         
@@ -331,25 +356,40 @@ var AG = {
             var pai = casal[0];
             var mae = casal[1];
             
-            var pontoCruzamento = parseInt(Math.random()*1000)%_this.tamanhoGenoma;
+            var tamanhoGene = _this.genes[0].length;
+            var pontoCruzamento = (parseInt(Math.random()*1000)%_this.tamanhoGenoma)*tamanhoGene;
             var filho = new AG.Individuo(pai.genoma.substr(0,pontoCruzamento) + mae.genoma.substr(pontoCruzamento));
             
             (function mutarGenoma(filho) {
                 var chance = Math.random();
                 if (chance < _this.taxaMutacao) {
                     //filho vai mutar
-                    var posicaoGene = Math.floor(Math.random()*_this.tamanhoGenoma)
+                    var posicaoGene = Math.floor(Math.random()*_this.tamanhoGenoma)*tamanhoGene
                     var novoGene = Math.floor(Math.random()*_this.genes.length);
-                    filho.genoma[posicaoGene] = _this.genes[novoGene];
+                    for (var i=0; i<tamanhoGene; i++)
+                        filho.genoma[posicaoGene+i] = _this.genes[novoGene][i];
+                    console.log('filho mutante. posicaoGene', posicaoGene);
                 }
             })(filho);
-            
+
+            console.log('pai', pai.genoma, 'mae', mae.genoma, 'filho', filho.genoma, 'cruzamento em', pontoCruzamento);
             return filho;
         }
 		
 		/************** PUBLICO **************/
 		_this.iniciar = function() {
 			
+            while(_this.geracaoFinal == 0 || _this.geracao < _this.geracaoFinal) {
+                
+                _this.novaGeracao();
+                console.log('//------------------ GERACAO', _this.geracao, '----------------//');
+                
+                if (_this.geracao % _this.periodoAmostra == 0 && _this.amostraHandler) {
+                    _this.amostraHandler(_this.amostra());
+                }
+                
+            }
+            
 		}
 		
 		_this.amostra = function() {
@@ -372,7 +412,7 @@ var AG = {
 	},
 	
 	Amostra : function(params) {
-        $.extend(this, {
+        $.extend(true, this, {
             populacao : [],
     	    tamanhoAmostra : 0
         }, params);
@@ -421,6 +461,8 @@ AG.Amostra.prototype = new Array;
 	 		tamanhoGenoma : 3,
 	 		tamanhoPopulacao : 10,
 	 		geracaoFinal : 10,
+            periodoAmostra: 5,
+            amostraHandler: function(amostra) { console.log(amostra); },
 	 		
 	 		funcaoAfinidade : function(individuo) { 
                  var acumulador = 0; 
@@ -457,14 +499,42 @@ AG.Amostra.prototype = new Array;
    console.assert(execucao.populacao[0].fitnessNormalizadoAcumulado == 0,   'Fitness deveria ser 0');
    console.assert(execucao.populacao[1].fitnessNormalizadoAcumulado == 0.25,'Fitness deveria ser 0.25');
    console.assert(execucao.populacao[2].fitnessNormalizadoAcumulado == 1,   'Fitness deveria ser 0.75');
-   
+
+   //Testes de seleção e reprodução
    var casal = execucao._selecionarUmCasal();
    console.assert(casal.length == 2,   'Casal deve ser formado por 2 indivíduos');
    var filho = execucao._reproduzir(casal);
    console.assert(filho.genoma.length == 3, 'Genoma do filho tem que ser do mesmo tamanho dos pais');
    
+   //Testes de geração de uma nova população
+   var populacaoAnterior = $.extend(true, [], execucao.populacao); //clone
+   execucao.novaGeracao();
+   var novosIndividuosDiferentes = 0;
+   populacaoAnterior.forEach(function(old, i){ if (old.genoma != execucao.populacao[i].genoma) novosIndividuosDiferentes++; });
+   console.assert(execucao.populacao.length == populacaoAnterior.length, 'A nova geração deve ter tantos indivíduos quanto a geracao anterior');
+   console.assert(novosIndividuosDiferentes > 0);
+   
+   execucao.iniciar();
    console.log('Testes passaram com sucesso.');
 })();
+
+var genes = [];
+for (var i=0; i< validMoves.length; i++) { genes.push( i.toString().length == 1 ? '0'+i : i ); }
+
+var e = new AG.Execucao({
+    genes : genes,
+ 	tamanhoGenoma : 31,
+ 	tamanhoPopulacao : 30,
+ 	geracaoFinal : 100,
+    periodoAmostra: 10,
+    amostraHandler: function(amostra) { console.log(amostra); },
+ 	
+ 	funcaoAfinidade : function(individuo) { 
+         var c = 0; 
+         board.forEach(function(spot){ c+=spot.validMovesNow().length; }); 
+         return c + (33 - board.score());
+    }
+ });
 
 		</script>
 
