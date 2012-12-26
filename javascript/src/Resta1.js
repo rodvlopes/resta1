@@ -1,442 +1,238 @@
 var Resta1 = {
-
-	/*#################################################*/
-	/*############        MOVIMENTO         ##########*/
-	
-	Movimento : function (movimentoArray) {
-		this.de 	= movimentoArray[0];
-		this.meio = movimentoArray[1];
-		this.para = movimentoArray[2];
-		
-		this.equals = function(de, para) {
-			if (typeof(de) == 'object') {
-				var m=de;
-				return this.de == m[0] && this.meio == m[1] && this.para == m[2];
-			}
-			return this.de == de && this.para == para;
-		}
-		
-		this.toArray = function() {
-			return [this.de, this.meio, this.para];
-		}
-		
-		this.toString = function() {
-			return '['+this.de+','+this.meio+','+this.para+']';
-		}
-	},
-
-
-	/*##################################################*/
-	/*############        MOVIMENTOS         ##########*/
-	
-	Movimentos : function (params) {
-		var self = this;
-		self._movimentos = [];
-		
-		function init() {
-			
-			if (params['movimentos']) {
-				self.inicializarMovimentos(params['movimentos']);
-			}
-			else if (params['json']) {
-				$.getJSON(params['json'], self.inicializarMovimentos);
-			}
-			
-		}
-		
-		this.inicializarMovimentos = function(lista) {
-			for(var i=0; i<lista.length; i++) {
-				self._movimentos.push(new Resta1.Movimento(lista[i]));
-			}
-		}
-
-		this.ehValido = function(de, para) {
-			for (var i=0; i<this._movimentos.length; i++) {
-				var m = this._movimentos[i];
-				if (m.equals(de,para)) { return m; }
-			}
-			return false;
-		}
-		
-		init();
-	},
-	
-	
-	/*##################################################*/
-	/*############         TABULEIRO          ##########*/
-	//
-	//params {
-	//  id 								: id da tabela que representa o tabuleiro do jogo.
-	//  appendTo 					: id do elemento ao qual será apendando um tabuleiro default.
-	//	movimentos 				: instância de Movimentos.
-	//	contadorId  			: [opcional] id do elemento que vai receber
-	//                			o valor da pontuação do jogo.
-	//	listaMovimentosId : Id do elemento onde será adicionado a lista 
-	//											de movimentações que foram executadas.
-	//	jogavel						: default true.
-	//	execucaoInicial		: string de movimentos que será executada no momento da criaçao
-	//											do tabuleiro.
-	//	instantaneo				: default false. Se tem ou não animação nos movimentos.
-	//}
-	Tabuleiro : function(params) {
-		var self = this;
-		
-		
-		//Inicializar
-		this._inicializar = function() {
-			self._pecaSnippet = '<div class="peca ui-draggable" style="position: relative; display: none;"></div>';
-			
-			if (params['appendTo']) {
-				var $div = (typeof(params['appendTo']) == "object") ? $(params['appendTo']) : $('#'+params['appendTo']);
-				self._$tabuleiro = $div.append(Resta1.Tabuleiro.modeloDefault(params['tema'])).find('table');
-			}
-			else if (params['id']) {
-				self._$tabuleiro = (typeof(params['id']) == "object") ? $(params['id']) : $("#"+params['id']);
-			}
-			else {
-				Notification.error('Tabuleiro não encontrado!');
-			}
-			
-			if (self._$tabuleiro.length != 1) Notification.error('Tabuleiro não encontrado!');
-		
-			self._movimentos = params['movimentos'];
-			if (!self._movimentos) 
-				self._movimentos = new Resta1.Movimentos({movimentos: Resta1.Tabuleiro.MovimentosDefault});
-		
-			if (params['contadorId']) {
-				self._contador = params['contadorId'];
-				self._$contador = $("#"+self._contador);
-				$(self).bind('totalDePecasAlterado', function(event, novoValor) {
-					self._$contador.text(novoValor);
-				});
-			}
-	
-			if (params['listaMovimentosId']) {
-				self._listaMovimentosId = params['listaMovimentosId'];
-				$("#"+self._listaMovimentosId).append('<ul></ul>');
-				self._$listaMovimentos = $("#"+self._listaMovimentosId+" ul");
-				$(self).bind('pecaComida', self.listaMovimentosAdicionar);
-				$(self).bind('jogoReiniciado', function() {self._$listaMovimentos.html('');});
-				self._$listaMovimentos.find('li').live('mouseover', function(){
-					$(this).addClass('para-remover');
-					self._$listaMovimentos.find('li:gt('+$(this).index()+')').addClass('para-remover');
-				});
-				self._$listaMovimentos.find('li').live('click', self.desfazerMovimentosSelecionados);
-				self._$listaMovimentos.bind('mouseout', function(){
-					$(this).find('li').removeClass('para-remover');
-				});
-			}
-			
-			self._jogavel = true;
-			if (params['jogavel']==false) self._jogavel = false;
-			
-			self._instantaneo = false;
-			if (params['instantaneo'] == true) self._instantaneo = true;
-			self._animacaoTempo = self._instantaneo ? 0 : 'fast';
-			
-			self.execucaoInicial(params['execucaoInicial']);
-			
-			self._estadoInicial = [];
-			self._$tabuleiro.find('.peca').each(function(){ 
-				var spot = $(this).parent().get(0).getAttribute('data-spot');
-				self._estadoInicial.push(spot) ;
-			});
-			
-			
-			self.tornarPecasDraggables();
-			self.tonarSpotsDroppables();
-		};		
-				
-	
-		//Métodos
-		this.tornarPecasDraggables = function() {
-			if (!self._jogavel) return;
-			self._$tabuleiro.find(".peca").draggable({
-			   revert: 'invalid'
-			});
-		};
-		
-		this.tonarSpotsDroppables = function() {
-			if (!self._jogavel) return;
-			self._$tabuleiro.find(".spot").droppable({
-				accept: function(elemento) {
-					var paraSpot = this.getAttribute('data-spot');
-					var deSpot   = elemento.parent().get(0).getAttribute('data-spot');
-					return self.movimentoPossivelNoEstadoAtual(deSpot, paraSpot);
-		    },
-				activate: function(event, ui) {
-					var paraSpot = this.getAttribute('data-spot');
-					var deSpot   = ui.draggable.parent().get(0).getAttribute('data-spot');
-					if (self._movimentos.ehValido(deSpot, paraSpot)) {
-						self._$tabuleiro.find('td[data-spot="'+paraSpot+'"]').addClass('highlight');
-					}			
-				},
-				deactivate: function() {
-					self._$tabuleiro.find('td').removeClass('highlight');
-				},
-				drop: function(event, ui) {
-					var paraSpot = this.getAttribute('data-spot');
-					var deSpot   = ui.draggable.parent().get(0).getAttribute('data-spot');
-					var movimento = self._movimentos.ehValido(deSpot, paraSpot);
-					self.executar(movimento, ui.draggable, $(this));
-					self._$tabuleiro.find('td').removeClass('highlight');
-				}
-			});
-		};
-		
-		this.executar = function(movimento, $elemDragged, $elemDrop, posAcao) {
-			$elemDrop.append($elemDragged.css('top','0').css('left', '0'));
-			
-			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').children()
-				.fadeOut(self._animacaoTempo, function(){
-					$(this).remove();
-					self.eventos.emitirPecaComida(movimento);
-					if (typeof(posAcao) == 'function') { posAcao(); }
-				});
-		};
-		
-		this.reverter = function(movimento, posAcao) {
-			self._$tabuleiro.find('td[data-spot="'+movimento.de+'"]').html(self._pecaSnippet);
-			self._$tabuleiro.find('td[data-spot="'+movimento.de+'"]').find('.peca').fadeIn(self._animacaoTempo);
-			
-			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').html(self._pecaSnippet);
-			self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').find('.peca').fadeIn(self._animacaoTempo);
-			
-			self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').find('.peca').fadeOut(self._animacaoTempo, function() {
-				self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').html('');
-				self.eventos.emitirMovimentoRevertido(movimento);
-				if (typeof(posAcao) == 'function') { posAcao(); }
-			}); 
-		};
-		
-		this.movimentoPossivelNoEstadoAtual = function (de, para) {
-			var movimento = (typeof(de) == "object") ? de : self._movimentos.ehValido(de, para);
-			if (!movimento) return false;
-			
-			return 	self._$tabuleiro.find('td[data-spot="'+movimento.meio+'"]').children().length >  0 &&
-							self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]').children().length == 0;
-		};
-		
-		this.reiniciar = function() {
-			self._$tabuleiro.find('.spot').each(function(){
-				var spot = this.getAttribute('data-spot');
-				if (self._estadoInicial.contains(spot)) {
-					$(this).html('<div class="peca" />');
-				}
-				else {
-					$(this).html('');
-				}
-			});
-			
-			self.tornarPecasDraggables();
-			self.eventos.emitirJogoReiniciado();
-		};
-		
-		this.listaMovimentosAdicionar = function(event, movimento) {
-				self._$listaMovimentos.append('<li>'+movimento.de+'>'+movimento.para+'</li>');
-		};
-		
-		this.desfazerMovimentosSelecionados = function() {
-			var movimentosParaDesfazer = self._$listaMovimentos.find('.para-remover').get();
-			
-			(function defazerRecusivo() {
-				if (movimentosParaDesfazer.length == 0) {
-					self.tornarPecasDraggables();
-					return;
-				}
-				var $li = $(movimentosParaDesfazer.pop());
-				$li.remove();
-				var mSplit = $li.html().split('&gt;');
-				var movimento = self._movimentos.ehValido(mSplit[0],mSplit[1]);
-				self.reverter(movimento, defazerRecusivo);
-			})();
-		};
-		
-		this.executarMovimentos = function(movimentosStr) {
-			if ($.trim(movimentosStr).length == 0) return;
-			
-			var movimentosStrArr = $.trim(movimentosStr).split(/\s+/);
-			var movimentosParaExecutar = [];
-			for (var i=0; i< movimentosStrArr.length; i++) {
-				var mSplit = movimentosStrArr[i].split('>');
-				var movimento = self._movimentos.ehValido(mSplit[0], mSplit[1]);
-				if (movimento) {
-					movimentosParaExecutar.push(movimento);
-				}
-				else {
-					Notification.error("Esta sequência de movimentos não é válida. Movimento incorreto encontrado: #m.".replace("#m",mSplit[0]+'>'+mSplit[1]), "Erro");
-					return;
-				}
-			}
-			movimentosParaExecutar = movimentosParaExecutar.reverse();
-			
-			(function executarRecusivo() {
-				if (movimentosParaExecutar.length == 0) {
-					return;
-				}
-				
-				var movimento = movimentosParaExecutar.pop();
-				if (!self.movimentoPossivelNoEstadoAtual(movimento)) {
-					Notification.error("O movimento #m não pode ser executado no estado atual.".replace("#m",movimento.de+'>'+movimento.para), "Erro");
-					return;
-				}
-				
-				$elemDragged = self._$tabuleiro.find('td[data-spot="'+movimento.de+'"]').children();
-				$elemDrop    = self._$tabuleiro.find('td[data-spot="'+movimento.para+'"]');
-				self.executar(movimento, $elemDragged, $elemDrop, executarRecusivo);
-			})();
-		};
-		
-		this.execucaoInicial = function(movimentosStr) {
-			if (movimentosStr) {
-				self.executarMovimentos(movimentosStr);
-			}
-		};
-		
-		this.movimentosExecutadosString = function() {
-			if (!self._$listaMovimentos) {
-				Notification.alert('Uma container para listaMovimentos não foi inicializado com a instância do tabuleiro.', 'Não Existe');
-				return '';
-			}
-			
-			var sequencia = '';
-			self._$listaMovimentos.find('li').each(function(){sequencia += $(this).text() + ' ';});
-			return $.trim(sequencia);
-		}
-		
-		
-		// *** EVENTOS *** //
-		this.eventos = {
-			emitirTotalDePecasAlterado : function() {
-				var totalPecas = self._$tabuleiro.find('.peca').length;
-				$(self).trigger('totalDePecasAlterado', [totalPecas]);
-			},
-			
-			emitirPecaComida : function(movimento) {
-				$(self).trigger('pecaComida', [movimento]);
-				
-				self.eventos.emitirTotalDePecasAlterado();
-			},
-			
-			emitirJogoReiniciado : function() {
-					$(self).trigger('jogoReiniciado');
-					
-					self.eventos.emitirTotalDePecasAlterado();
-			},
-			
-			emitirMovimentoRevertido : function(movimento) {
-				$(self).trigger('movimentoRevertido', [movimento]);
-				
-				self.eventos.emitirTotalDePecasAlterado();
-			}
-		};
-		
-		self._inicializar();
-		
-	} //Tabuleiro
-	
+    Board : function(config) {
+        
+        var config = $.extend({
+                width: $('body').width(),
+                height: $(window).height()-20,
+                container: 'body'
+        }, config);
+        
+        var width = config.width,
+            height = config.height,
+        	slotw = Math.floor(width/7), 
+        	dslotw = Math.floor(slotw/2), 
+        	sloth = Math.floor(height/7),
+        	dsloth = Math.floor(sloth/2),
+        	radius = Math.floor(0.35 * Math.min(slotw, sloth));
+            
+        var board = [
+        	{x: 2*slotw, y:0}, {x:3*slotw, y:0}, {x:4*slotw, y:0},
+        	{x: 2*slotw, y:sloth}, {x:3*slotw, y:sloth}, {x:4*slotw, y:sloth},
+        	{x:0, y:2*sloth}, {x:1*slotw, y:2*sloth}, {x:2*slotw, y:2*sloth}, {x:3*slotw, y:2*sloth}, {x:4*slotw, y:2*sloth}, {x:5*slotw, y:2*sloth}, {x:6*slotw, y:2*sloth},
+        	{x:0, y:3*sloth}, {x:1*slotw, y:3*sloth}, {x:2*slotw, y:3*sloth}, {x:3*slotw, y:3*sloth}, {x:4*slotw, y:3*sloth}, {x:5*slotw, y:3*sloth}, {x:6*slotw, y:3*sloth},
+        	{x:0, y:4*sloth}, {x:1*slotw, y:4*sloth}, {x:2*slotw, y:4*sloth}, {x:3*slotw, y:4*sloth}, {x:4*slotw, y:4*sloth}, {x:5*slotw, y:4*sloth}, {x:6*slotw, y:4*sloth},
+        	{x: 2*slotw, y:5*sloth}, {x:3*slotw, y:5*sloth}, {x:4*slotw, y:5*sloth},
+        	{x: 2*slotw, y:6*sloth}, {x:3*slotw, y:6*sloth}, {x:4*slotw, y:6*sloth}
+        ]
+        
+        board.validMoves = [[0,1,2],[0,3,8],[1,4,9],[2,1,0],[2,5,10],[3,4,5],[3,8,15],[4,9,16],[5,4,3],[5,10,17],[6,7,8],[6,13,20],[7,8,9],[7,14,21],[8,3,0],[8,7,6],[8,9,10],[8,15,22],[9,4,1],[9,8,7],[9,10,11],[9,16,23],[10,5,2],[10,9,8],[10,11,12],[10,17,24],[11,10,9],[11,18,25],[12,11,10],[12,19,26],[13,14,15],[14,15,16],[15,8,3],[15,14,13],[15,16,17],[15,22,27],[16,9,4],[16,15,14],[16,17,18],[16,23,28],[17,10,5],[17,16,15],[17,18,19],[17,24,29],[18,17,16],[19,18,17],[20,13,6],[20,21,22],[21,14,7],[21,22,23],[22,15,8],[22,21,20],[22,23,24],[22,27,30],[23,16,9],[23,22,21],[23,24,25],[23,28,31],[24,17,10],[24,23,22],[24,25,26],[24,29,32],[25,18,11],[25,24,23],[26,19,12],[26,25,24],[27,22,15],[27,28,29],[28,23,16],[29,24,17],[29,28,27],[30,27,22],[30,31,32],[31,28,23],[32,29,24],[32,31,30]];
+        
+        board.forEach(function(spot, i){ 
+            //Adiciona o deslocamento para centralizar o círculo
+            spot.x += dslotw, spot.y += dsloth,
+            
+            //Determina que o slot 16 está vazio incialmente 
+            spot.state = i==16 ? 'empty' : '';
+            
+            //Movimentos válidos deste slot
+            spot.validMoves = board.validMoves.filter(function(m) { return i==m[0] });
+            
+            //Função que determina os movimentos válidos no estado atual
+            spot.validMovesNow = function(){ return spot.validMoves.filter(function(m){ 
+                return !board[m[0]].empty() && !board[m[1]].empty() && board[m[2]].empty() 
+            }) };
+            
+            spot.empty = function(){return spot.state == 'empty' || spot.state == 'destination';}
+            
+            spot.destination = function(){return spot.state == 'destination';}
+            
+            spot.selected = function(){return spot.state == 'selected';}
+            
+            spot.cleanState = function() { 
+                switch(spot.state) {
+                    case 'selected': 	spot.state = ''; 	  break;
+                    case 'destination': spot.state = 'empty'; break;
+                } 
+            }
+            
+            spot.runMove = function(m) { /*spot é o destinatário*/
+            	var m = m || spot.refMove;
+            	
+            	if (board[m[0]].validMovesNow().indexOf(m) > -1) {
+            		spot.state = '';
+            		board[m[1]].state = 'empty';
+            		board[m[0]].state = 'empty';
+            		var moveIndex = board.validMoves.indexOf(m).toString();
+            		board.sequence.push(moveIndex);
+                    return true;
+            	}
+            	else {
+            		//console.log('Este movimento não pode ser executado agora. ', m.toString());
+                    return false;
+            	} 
+            }
+            });
+        
+        board.sequence = [];
+        board.sequence.toString = function() { return this.map(function(mi){ mi = mi.toString(); return mi.length == 1 ? '0'+mi : mi }).toString(); }
+        
+        board.score = function() { return 32 - board.sequence.length; }
+        
+        
+        board.cleanState = function() {
+        	board.forEach(function(spot) { spot.cleanState(); });
+        }
+        
+        board.selectedSpot = function() {
+        	return board.filter(function(spot) { return spot.selected() })[0];
+        }
+        
+        board.selectSpot = function(spot) {
+        	spot.state = 'selected';
+        	spot.validMovesNow().forEach(function(m) {
+        		board[m[2]].state = 'destination';
+        		board[m[2]].refMove = m;
+        	});
+        }
+        
+        /*Aceita sequencias do tipo: '10,21,32,75' ou '10213275'
+          animate=true para executar a sequencia em slowmotion */
+        board.runSequence = function(sequence, animate) {
+            var seqArr;
+            
+            if (sequence.contains(','))
+                seqArr = $.trim(sequence).split(/ *, */).filter(function(m){ return typeof(m) == 'string' && m.length == 2; });
+            else
+                seqArr = sequence.match(/.{2}/g);
+        	
+            if (animate) {
+                seqArr.forEach(function(mi,i){
+                    setTimeout(function(){
+                        var m = board.validMoves[parseInt(mi)];
+                        board[m[2]].runMove(m);
+                        updateView();
+                    }, 500*i);
+                });
+            }
+            else {
+                seqArr.forEach(function(mi){
+                    var m = board.validMoves[parseInt(mi)];
+                    board[m[2]].runMove(m);
+                });
+                
+                updateView();
+            }
+        	
+        } 
+        
+        
+        board.runSequenceAnimated = function(sequence) {
+            board.runSequence(sequence, true);
+        }
+        
+        
+        board.undoLastMove = function() {
+            if (board.sequence.length > 0) {
+                var lastMove = board.validMoves[board.sequence.pop()];
+                board[lastMove[2]].state = 'empty';
+        		board[lastMove[1]].state = '';
+        		board[lastMove[0]].state = '';
+                updateView();
+        	}
+        }
+        
+        
+        board.reset = function() {
+            board.forEach(function(spot, i){ spot.state = i==16 ? 'empty' : ''; });
+            updateView();
+        }
+            
+         
+        var svg = d3.select(config.container).append("svg")
+        		  .attr("width", width)
+        		  .attr("height", height);
+        
+        	
+        var g = svg.selectAll("g.node")
+        	.data(board).enter()
+        	.append("svg:g")
+        	.attr("class", "node")
+        	.attr("transform", function(d) { return "translate(" + d.x + ","+ d.y + ")"; })
+        	.on('click', function(spot){ 
+        	if (spot.destination()) {
+        		//execuar ação de comer
+        		spot.runMove();
+        		board.cleanState();
+        		updateView();
+        	}
+        	else if (spot.empty()) {
+        		//não faz nada
+        	}
+        	else {
+        		//limpa estado e seleciona
+        		board.cleanState();
+        		board.selectSpot(spot);
+        		updateView();
+        	}
+        });
+        
+        g.append("svg:circle")
+        	.attr("class", function(spot) { return spot.state; })
+        	.attr("r", radius)
+        	
+        
+        g.append("svg:text")
+        	.attr("x", "-0.5em")
+        	.attr("dy", ".31em")
+        	.text(function(d, i) { return i.toString().length == 1 ? '0'+i : i; });
+        
+          
+        svg.append("svg:text")
+        	.attr("x", width-100)
+        	.attr("y", height-30+'px')
+        	.attr("class", 'score')
+        	.text(function() { return 'Resta ' + board.score()});
+        	  
+        	
+        
+        function updateView() {
+        	svg.selectAll("circle")
+        		.data(board)
+        		.attr("class", function(d) { return d.state; });
+        	
+        	svg.select(".score")
+        		.text(function() { return 'Resta ' + board.score()});
+        } 
+        
+        //board.runSequence('07,26,36,68,58,62,74,34,43,72,74,26,04,20,28,64,02,20,28,12,01,66,48,17,10,46,19,10');
+        //31,66,70,71,75,37,06,35,47,55,30,10,32,71,49,43,65,56,29,65,01,09,16,40,02,69,04,44,36,26,07
+        
+        //crtl+z
+        $(window).keypress( function(eventObject) { 
+            if (eventObject.ctrlKey && eventObject.keyCode == 26) {
+                board.undoLastMove();
+            }
+        } );        
+        
+        return board;
+    },
+    
+    
+    //mofica métodos de uma instância do board para
+    //otimizar a execucao do AG.
+    modifyGA : function(board) {
+        board.reset = function(){
+            board.forEach(function(spot, i){ spot.state = i==16 ? 'empty' : ''; });
+        }
+        
+        board.runSequence = function(sequence) {
+            var seqArr = sequence.match(/.{2}/g);
+            
+            seqArr.forEach(function(mi){
+                var m = board.validMoves[parseInt(mi)];
+                board[m[2]].runMove(m);
+            });
+               
+        }
+    }
 }
-
-
-Resta1.Tabuleiro.modeloDefault = function(tema){ 
-if (typeof(tema) != 'string') tema = '';
-
-return '\
-<table class="tabuleiro #tema">\
-	<tr>\
-		<td class="shore"></td>\
-		<td class="shore"></td>\
-		<td class="spot" data-spot="01"><div class="peca" /></td>\
-		<td class="spot" data-spot="02"><div class="peca" /></td>\
-		<td class="spot" data-spot="03"><div class="peca" /></td>\
-		<td class="shore"></td>\
-		<td class="shore"></td>\
-	</tr>\
-	<tr>\
-		<td class="shore"></td>\
-		<td class="shore"></td>\
-		<td class="spot" data-spot="04"><div class="peca" /></td>\
-		<td class="spot" data-spot="05"><div class="peca" /></td>\
-		<td class="spot" data-spot="06"><div class="peca" /></td>\
-		<td class="shore"></td>\
-		<td class="shore"></td>\
-	</tr>\
-	<tr>\
-		<td class="spot" data-spot="07"><div class="peca" /></td>\
-		<td class="spot" data-spot="08"><div class="peca" /></td>\
-		<td class="spot" data-spot="09"><div class="peca" /></td>\
-		<td class="spot" data-spot="10"><div class="peca" /></td>\
-		<td class="spot" data-spot="11"><div class="peca" /></td>\
-		<td class="spot" data-spot="12"><div class="peca" /></td>\
-		<td class="spot" data-spot="13"><div class="peca" /></td>\
-	</tr>\
-	<tr>\
-		<td class="spot" data-spot="14"><div class="peca" /></td>\
-		<td class="spot" data-spot="15"><div class="peca" /></td>\
-		<td class="spot" data-spot="16"><div class="peca" /></td>\
-		<td class="spot" data-spot="17"></td>\
-		<td class="spot" data-spot="18"><div class="peca" /></td>\
-		<td class="spot" data-spot="19"><div class="peca" /></td>\
-		<td class="spot" data-spot="20"><div class="peca" /></td>\
-	</tr>\
-	<tr>\
-		<td class="spot" data-spot="21"><div class="peca" /></td>\
-		<td class="spot" data-spot="22"><div class="peca" /></td>\
-		<td class="spot" data-spot="23"><div class="peca" /></td>\
-		<td class="spot" data-spot="24"><div class="peca" /></td>\
-		<td class="spot" data-spot="25"><div class="peca" /></td>\
-		<td class="spot" data-spot="26"><div class="peca" /></td>\
-		<td class="spot" data-spot="27"><div class="peca" /></td>\
-	</tr>\
-	<tr>\
-		<td class="shore"></td>\
-		<td class="shore"></td>\
-		<td class="spot" data-spot="28"><div class="peca" /></td>\
-		<td class="spot" data-spot="29"><div class="peca" /></td>\
-		<td class="spot" data-spot="30"><div class="peca" /></td>\
-		<td class="shore"></td>\
-		<td class="shore"></td>\
-	</tr>\
-	<tr>\
-		<td class="shore"></td>\
-		<td class="shore"></td>\
-		<td class="spot" data-spot="31"><div class="peca" /></td>\
-		<td class="spot" data-spot="32"><div class="peca" /></td>\
-		<td class="spot" data-spot="33"><div class="peca" /></td>\
-		<td class="shore"></td>\
-		<td class="shore"></td>\
-	</tr>\
-</table>\
-'.replace('#tema', tema);
-}
-
-Resta1.Tabuleiro.MovimentosDefault = [["01","02","03"],["01","04","09"],["02","05","10"],["03","02","01"],["03","06","11"],["04","05","06"],["04","09","16"],["05","10","17"],["06","05","04"],["06","11","18"],["07","08","09"],["07","14","21"],["08","09","10"],["08","15","22"],["09","04","01"],["09","08","07"],["09","10","11"],["09","16","23"],["10","05","02"],["10","09","08"],["10","11","12"],["10","17","24"],["11","06","03"],["11","10","09"],["11","12","13"],["11","18","25"],["12","11","10"],["12","19","26"],["13","12","11"],["13","20","27"],["14","15","16"],["15","16","17"],["16","09","04"],["16","15","14"],["16","17","18"],["16","23","28"],["17","10","05"],["17","16","15"],["17","18","19"],["17","24","29"],["18","11","06"],["18","17","16"],["18","19","20"],["18","25","30"],["19","18","17"],["20","19","18"],["21","14","07"],["21","22","23"],["22","15","08"],["22","23","24"],["23","16","09"],["23","22","21"],["23","24","25"],["23","28","31"],["24","17","10"],["24","23","22"],["24","25","26"],["24","29","32"],["25","18","11"],["25","24","23"],["25","26","27"],["25","30","33"],["26","19","12"],["26","25","24"],["27","20","13"],["27","26","25"],["28","23","16"],["28","29","30"],["29","24","17"],["30","25","18"],["30","29","28"],["31","28","23"],["31","32","33"],["32","29","24"],["33","30","25"],["33","32","31"]];
-
-/*#################################################*/
-/*############         JQ.PLUGIN         ##########*/
-
-(function($){
-	$.fn.resta1 = function(options) {
-		var settings = $.extend({}, $.fn.resta1.defaultOptions, options);
-
-		return this.each(function() {
-			var $this = $(this);
-			
-			settings.execucaoInicial = $this.find('.execucaoInicial').html();
-			if (settings.execucaoInicial)
-				settings.execucaoInicial = settings.execucaoInicial.replace(/&gt;/g, '>');
-			
-			if ($this.find('table').size() > 0) 
-					settings.id = $this.find('table').get(0);
-			else
-				settings.appendTo = this;
-
-			
-			this.tabuleiro = new Resta1.Tabuleiro(settings);
-			
-		});
-	};
-
-	$.fn.resta1.defaultOptions = {
-	};
-})(jQuery);
