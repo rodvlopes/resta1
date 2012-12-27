@@ -23,6 +23,25 @@
                    execucao.populacao[0].genoma[0] == '1' || 
                    execucao.populacao[0].genoma[0] == '2', 'Genoma deve ser composto apenas por genes permitidos 0,1 ou 2');
    
+    
+    //Testes de diversidade
+    config.tamanhoPopulacao = 6;
+    execucao = new AG.Execucao(config);
+    execucao.populacao[0].genoma = '000';
+    execucao.populacao[1].genoma = '001';
+    execucao.populacao[2].genoma = '120';
+    execucao.populacao[3].genoma = '022';
+    execucao.populacao[4].genoma = '120';
+    execucao.populacao[5].genoma = '120';
+    execucao._calcularDiversidade();
+    console.assert(execucao.populacao[0].diversidade === 1, 'Deversidade do individuo 0 deveria ser 2');
+    console.assert(execucao.populacao[1].diversidade === 2, 'Deversidade do individuo 1 deveria ser 3');
+    console.assert(execucao.populacao[2].diversidade === 1, 'Deversidade do individuo 2 deveria ser 0');
+    console.assert(execucao.populacao[3].diversidade === 1, 'Deversidade do individuo 3 deveria ser 3');
+    console.assert(execucao.populacao[4].diversidade === 1, 'Deversidade do individuo 4 deveria ser 0');
+    console.assert(execucao.populacao[5].diversidade === 1, 'Deversidade do individuo 5 deveria ser 0');
+    
+    
     //Testes de aplicao do fitness function
     config.tamanhoPopulacao = 3;
     execucao = new AG.Execucao(config);
@@ -34,6 +53,7 @@
     console.assert(execucao.populacao[0].fitnessNormalizadoAcumulado == 0,      'Fitness deveria ser 0');
     console.assert(execucao.populacao[1].fitnessNormalizadoAcumulado == 0.25,   'Fitness deveria ser 0.25');
     console.assert(execucao.populacao[2].fitnessNormalizadoAcumulado == 1,      'Fitness deveria ser 0.75');
+    
     
     //Testes de Amostra
     var amostra = execucao.amostra();

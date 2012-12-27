@@ -18,10 +18,12 @@ var AG = {
             
             var defaults = { geracao: 0, taxaMutacao: 0.05, geracaoFinal: 0, periodoAmostra : 10 }
             $.extend(_this, defaults, config);
+            _this.tamanhoGene = _this.genes[0].length;
 			_this._gerarPopulacaoInicial();
+            _this._calcularDiversidade();
             _this._calcularFitness();
             _this._normalizarFitnessEOrdenar();
-		
+            
 		}
 		
 		_this._gerarPopulacaoInicial = function() {
@@ -39,10 +41,48 @@ var AG = {
             }
             
             _this.populacao = novaPopulacao;
+            _this._calcularDiversidade();
             _this._calcularFitness();
             _this._normalizarFitnessEOrdenar();
             _this.geracao++;
 		}
+        
+        
+        _this._calcularDiversidade = function() {
+            var amostra = _this.amostra();
+            var frequencias = [];
+            amostra.forEach(function(individuo, i){
+                if (!individuo) return;
+                
+                var seqArr = individuo.genoma.match(new RegExp('.{'+ _this.tamanhoGene + '}', 'g'));
+                seqArr.forEach(function(gene, k){
+		            if (i == 0) frequencias[k] = [];
+                    if (frequencias[k][gene]) frequencias[k][gene]++;
+                    else frequencias[k][gene] = 1;
+                });
+            });
+	    
+            var genomaPopular = [];
+            frequencias.forEach(function(f){
+                var geneMaisFreq;
+                var freqAnterior = -1;
+
+                for (gene in f) {
+                    if (f[gene] > freqAnterior) { geneMaisFreq = gene; freqAnterior = f[gene]; }
+                }
+                
+                genomaPopular.push(geneMaisFreq);
+            });
+            
+            _this.populacao.forEach(function(individuo){
+                var seqArr = individuo.genoma.match(new RegExp('.{'+ _this.tamanhoGene + '}', 'g'));
+                individuo.diversidade = _this.tamanhoGenoma;
+                seqArr.forEach(function(gene, k){
+                    if (gene == genomaPopular[k]) individuo.diversidade--;
+                });
+            });
+        }
+        
         
         _this._calcularFitness = function() {
             _this.populacao.forEach(function(individuo,index){
@@ -108,17 +148,16 @@ var AG = {
             var pai = casal[0];
             var mae = casal[1];
             
-            var tamanhoGene = _this.genes[0].length;
-            var pontoCruzamento = (parseInt(Math.random()*1000)%_this.tamanhoGenoma)*tamanhoGene;
+            var pontoCruzamento = (parseInt(Math.random()*1000)%_this.tamanhoGenoma)*_this.tamanhoGene;
             var filho = new AG.Individuo(pai.genoma.substr(0,pontoCruzamento) + mae.genoma.substr(pontoCruzamento));
             
             (function mutarGenoma(filho) {
                 var chance = Math.random();
                 if (chance < _this.taxaMutacao) {
                     //filho vai mutar
-                    var posicaoGene = Math.floor(Math.random()*_this.tamanhoGenoma)*tamanhoGene
+                    var posicaoGene = Math.floor(Math.random()*_this.tamanhoGenoma)*_this.tamanhoGene
                     var novoGene = Math.floor(Math.random()*_this.genes.length);
-                    for (var i=0; i<tamanhoGene; i++)
+                    for (var i=0; i<_this.tamanhoGene; i++)
                         filho.genoma[posicaoGene+i] = _this.genes[novoGene][i];
                 }
             })(filho);
@@ -142,10 +181,12 @@ var AG = {
             
 		}
 		
-		_this.amostra = function() {
+		_this.amostra = function(tamanhoAmostra) {
+            var tamanhoAmostra = Math.max(6, Math.min(Math.round(_this.tamanhoPopulacao/10), 40));
 			return new AG.Amostra({
 				populacao: _this.populacao,
-				tamanhoAmostra: 6
+				tamanhoAmostra: tamanhoAmostra,
+                geracao: _this.geracao
 			});
 		}
 	
@@ -163,8 +204,9 @@ var AG = {
 	
 	Amostra : function(params) {
         $.extend(true, this, {
-            populacao : [],
-    	    tamanhoAmostra : 0
+            populacao: [],
+    	    tamanhoAmostra: 0,
+            geracao: 0
         }, params);
 		
 		

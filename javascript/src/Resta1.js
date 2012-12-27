@@ -144,6 +144,7 @@ var Resta1 = {
         
         board.reset = function() {
             board.forEach(function(spot, i){ spot.state = i==16 ? 'empty' : ''; });
+            board.sequence = [];
             updateView();
         }
             
@@ -223,6 +224,7 @@ var Resta1 = {
     modifyGA : function(board) {
         board.reset = function(){
             board.forEach(function(spot, i){ spot.state = i==16 ? 'empty' : ''; });
+            board.sequence = [];
         }
         
         board.runSequence = function(sequence) {
