@@ -1,10 +1,14 @@
+//winning sequence: 31,66,70,71,75,37,06,35,47,55,30,10,32,71,49,43,65,56,29,65,01,09,16,40,02,69,04,44,36,26,07
+
 var Resta1 = {
     Board : function(config) {
         
         var config = $.extend({
                 width: $('body').width(),
                 height: $(window).height()-20,
-                container: 'body'
+                container: 'body',
+                noView: false,
+                compactView: false
         }, config);
         
         var width = config.width,
@@ -62,7 +66,7 @@ var Resta1 = {
             		spot.state = '';
             		board[m[1]].state = 'empty';
             		board[m[0]].state = 'empty';
-            		var moveIndex = board.validMoves.indexOf(m).toString();
+            		var moveIndex = board.validMoves.indexOf(m);
             		board.sequence.push(moveIndex);
                     return true;
             	}
@@ -71,10 +75,9 @@ var Resta1 = {
                     return false;
             	} 
             }
-            });
+        });
         
-        board.sequence = [];
-        board.sequence.toString = function() { return this.map(function(mi){ mi = mi.toString(); return mi.length == 1 ? '0'+mi : mi }).toString(); }
+        board.sequence = new Resta1.Sequence();
         
         board.score = function() { return 32 - board.sequence.length; }
         
@@ -94,40 +97,30 @@ var Resta1 = {
         		board[m[2]].refMove = m;
         	});
         }
-        
-        /*Aceita sequencias do tipo: '10,21,32,75' ou '10213275'
-          animate=true para executar a sequencia em slowmotion */
-        board.runSequence = function(sequence, animate) {
-            var seqArr;
+
+
+        board.runSequence = function(seqStr) {
+            var seqArr = new Resta1.Sequence(seqStr);
             
-            if (sequence.contains(','))
-                seqArr = $.trim(sequence).split(/ *, */).filter(function(m){ return typeof(m) == 'string' && m.length == 2; });
-            else
-                seqArr = sequence.match(/.{2}/g);
-        	
-            if (animate) {
-                seqArr.forEach(function(mi,i){
+            seqArr.forEach(function(mi){
+                var m = board.validMoves[parseInt(mi)];
+                board[m[2]].runMove(m);
+            });
+            
+            updateView();
+        } 
+        
+        
+        board.runSequenceAnimated = function(seqStr) {
+            var seqArr = new Resta1.Sequence(seqStr);
+            
+            seqArr.forEach(function(mi,i){
                     setTimeout(function(){
                         var m = board.validMoves[parseInt(mi)];
                         board[m[2]].runMove(m);
                         updateView();
                     }, 500*i);
                 });
-            }
-            else {
-                seqArr.forEach(function(mi){
-                    var m = board.validMoves[parseInt(mi)];
-                    board[m[2]].runMove(m);
-                });
-                
-                updateView();
-            }
-        	
-        } 
-        
-        
-        board.runSequenceAnimated = function(sequence) {
-            board.runSequence(sequence, true);
         }
         
         
@@ -144,97 +137,111 @@ var Resta1 = {
         
         board.reset = function() {
             board.forEach(function(spot, i){ spot.state = i==16 ? 'empty' : ''; });
-            board.sequence = [];
+            board.sequence = new Resta1.Sequence();
             updateView();
         }
             
-         
-        var svg = d3.select(config.container).append("svg")
-        		  .attr("width", width)
-        		  .attr("height", height);
         
-        	
-        var g = svg.selectAll("g.node")
-        	.data(board).enter()
-        	.append("svg:g")
-        	.attr("class", "node")
-        	.attr("transform", function(d) { return "translate(" + d.x + ","+ d.y + ")"; })
-        	.on('click', function(spot){ 
-        	if (spot.destination()) {
-        		//execuar ação de comer
-        		spot.runMove();
-        		board.cleanState();
-        		updateView();
-        	}
-        	else if (spot.empty()) {
-        		//não faz nada
-        	}
-        	else {
-        		//limpa estado e seleciona
-        		board.cleanState();
-        		board.selectSpot(spot);
-        		updateView();
-        	}
-        });
-        
-        g.append("svg:circle")
-        	.attr("class", function(spot) { return spot.state; })
-        	.attr("r", radius)
-        	
-        
-        g.append("svg:text")
-        	.attr("x", "-0.5em")
-        	.attr("dy", ".31em")
-        	.text(function(d, i) { return i.toString().length == 1 ? '0'+i : i; });
-        
-          
-        svg.append("svg:text")
-        	.attr("x", width-100)
-        	.attr("y", height-30+'px')
-        	.attr("class", 'score')
-        	.text(function() { return 'Resta ' + board.score()});
+        var view = (function createView() {
+            if (config.noView) return;
+            
+            var svg = d3.select(config.container).append("svg")
+            		  .attr("width", width)
+            		  .attr("height", height);
+            
+            	
+            var g = svg.selectAll("g.node")
+            	.data(board).enter()
+            	.append("svg:g")
+            	.attr("class", "node")
+            	.attr("transform", function(d) { return "translate(" + d.x + ","+ d.y + ")"; })
+            	.on('click', function(spot){ 
+            	if (spot.destination()) {
+            		//execuar ação de comer
+            		spot.runMove();
+            		board.cleanState();
+            		updateView();
+            	}
+            	else if (spot.empty()) {
+            		//não faz nada
+            	}
+            	else {
+            		//limpa estado e seleciona
+            		board.cleanState();
+            		board.selectSpot(spot);
+            		updateView();
+            	}
+            });
+            
+            g.append("svg:circle")
+            	.attr("class", function(spot) { return spot.state; })
+            	.attr("r", radius)
+            	
+            if (config.compactView) {
+                svg.append("svg:text")
+                    .attr("x", width-21)
+                    .attr("y", height-10)
+                    .attr("class", 'score')
+                	.text(function() { return board.score().toString()});
+            }
+            else {
+                g.append("svg:text")
+                    .attr("x", "-0.5em")
+                	.attr("dy", ".31em")
+                	.text(function(d, i) { return i.toString().length == 1 ? '0'+i : i; });
+                    
+                svg.append("svg:text")
+                    .attr("x", width-100)
+                	.attr("y", height-30+'px')
+                	.attr("class", 'score')
+                	.text(function() { return 'Resta ' + board.score()});                
+            }
+                            
+            return svg;
+        })();
         	  
         	
         
         function updateView() {
-        	svg.selectAll("circle")
+            if (config.noView) return;
+            
+        	view.selectAll("circle")
         		.data(board)
         		.attr("class", function(d) { return d.state; });
         	
-        	svg.select(".score")
-        		.text(function() { return 'Resta ' + board.score()});
+            if (config.compactView) {
+            	view.select(".score")
+            		.text(function() { return board.score().toString()});
+            }
+            else {
+                view.select(".score")
+                	.text(function() { return 'Resta ' + board.score()});
+            }
         } 
         
-        //board.runSequence('07,26,36,68,58,62,74,34,43,72,74,26,04,20,28,64,02,20,28,12,01,66,48,17,10,46,19,10');
-        //31,66,70,71,75,37,06,35,47,55,30,10,32,71,49,43,65,56,29,65,01,09,16,40,02,69,04,44,36,26,07
-        
-        //crtl+z
+
+        //crtl+z bind
         $(window).keypress( function(eventObject) { 
             if (eventObject.ctrlKey && eventObject.keyCode == 26) {
                 board.undoLastMove();
             }
         } );        
         
+        board.runSequence(config.sequence);
+        
         return board;
     },
     
     
-    //mofica métodos de uma instância do board para
-    //otimizar a execucao do AG.
-    modifyGA : function(board) {
-        board.reset = function(){
-            board.forEach(function(spot, i){ spot.state = i==16 ? 'empty' : ''; });
-            board.sequence = [];
+    Sequence : function(seqStr) {
+        if (typeof(seqStr) == 'string')  {
+            var seqArr = seqStr.match(/.{2}/g);
+            for (var i=0; i<seqArr.length; this.push(seqArr[i++]));
         }
-        
-        board.runSequence = function(sequence) {
-            var seqArr = sequence.match(/.{2}/g);
             
-            seqArr.forEach(function(mi){
-                var m = board.validMoves[parseInt(mi)];
-                board[m[2]].runMove(m);
-            });
-               
-        }
-    }
+        this.toString = function() { return this.map(function(mi){ mi = mi.toString(); return mi.length == 1 ? '0'+mi : mi }).join('').toString(); }
+    },
+    
 }
+
+Resta1.Sequence.prototype = new Array;

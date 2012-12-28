@@ -14,9 +14,9 @@ var AG = {
 	
 		var _this = this;
 	
-		function init() {
+		_this._init = function() {
             
-            var defaults = { geracao: 0, taxaMutacao: 0.05, geracaoFinal: 0, periodoAmostra : 10 }
+            var defaults = { geracao: 0, taxaMutacao: 0.05, geracaoFinal: 0, periodoAmostra : 10, calculaDiversidade: false }
             $.extend(_this, defaults, config);
             _this.tamanhoGene = _this.genes[0].length;
 			_this._gerarPopulacaoInicial();
@@ -26,9 +26,11 @@ var AG = {
             
 		}
 		
+        
 		_this._gerarPopulacaoInicial = function() {
 			_this.populacao = AG.Helper.gerarIndividuos(_this.tamanhoPopulacao, _this.genes, _this.tamanhoGenoma);
 		}
+        
         
         _this.novaGeracao = function() {
             var novaPopulacao = [];
@@ -39,13 +41,32 @@ var AG = {
                 novaPopulacao.push(filho);
                 _this._posReproducao(casal);
             }
-            
+
+            if (!_this.subExecucao && _this.geracao % 2 == 1 && _this.tamanhoPopulacao >= 12)
+                _this._introduzirNovosIndividuos(novaPopulacao);
+                
             _this.populacao = novaPopulacao;
-            _this._calcularDiversidade();
+            
+            if (_this.calculaDiversidade)
+                _this._calcularDiversidade();
+                
             _this._calcularFitness();
             _this._normalizarFitnessEOrdenar();
             _this.geracao++;
 		}
+        
+        
+        _this._introduzirNovosIndividuos = function(populacao) {
+            var newConfig = $.extend({}, config, {subExecucao: true, geracaoFinal: 6, amostraHandler: null, tamanhoPopulacao: Math.floor(config.tamanhoPopulacao/2)});
+            var newExecucao = new AG.Execucao(newConfig);
+            newExecucao.iniciar();
+            var amostra = newExecucao.amostra();
+            amostra.forEach(function(individuo, i){ 
+                //subtitui aleatoriamente o individuos da populacao atual com os novos
+                var rand = Math.floor(Math.random()*populacao.length);
+                populacao[i].genoma = individuo.genoma;
+            });
+        }
         
         
         _this._calcularDiversidade = function() {
@@ -182,7 +203,7 @@ var AG = {
 		}
 		
 		_this.amostra = function(tamanhoAmostra) {
-            var tamanhoAmostra = Math.max(6, Math.min(Math.round(_this.tamanhoPopulacao/10), 40));
+            var tamanhoAmostra = tamanhoAmostra ? tamanhoAmostra : Math.max(6, Math.min(Math.round(_this.tamanhoPopulacao/10), 40));
 			return new AG.Amostra({
 				populacao: _this.populacao,
 				tamanhoAmostra: tamanhoAmostra,
@@ -190,7 +211,7 @@ var AG = {
 			});
 		}
 	
-		init();
+		_this._init();
 	
 	},
 	

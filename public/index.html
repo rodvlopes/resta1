@@ -7,51 +7,17 @@
 		<script src="http://mbostock.github.com/d3/d3.js?2.7.1"></script>
         <script src="js/src/Utils.js"></script>
         <script src="js/src/Resta1.js"></script>
-        <script src="js/src/AG.js"></script>
-        <script src="js/src/FastTests.js"></script>
         <link rel="stylesheet" type="text/css" media="screen" href="css/styles.css" />
 	</head>
 	 
 	<body>
 	
 	<script>
-    var board, e;
+    var board;
 	
     $(document).ready(function(){
         board = new Resta1.Board();
     });
-    
-    
-    function iniciarAG() {
-        Resta1.modifyGA(board);
-        
-        var genes = [];
-        for (var i=0; i< board.validMoves.length; i++) { genes.push( i.toString().length == 1 ? '0'+i : i.toString() ); }
-        
-        e = new AG.Execucao({
-            genes : genes,
-            tamanhoGenoma : 62,
-            tamanhoPopulacao : 10000,
-            geracaoFinal : 1000,
-            periodoAmostra: 50,
-            //amostraHandler: function(amostra) { console.log(amostra); },
-            amostraHandler: function(amostra) { 
-                console.log("Geracao:", amostra.geracao); 
-                amostra.forEach(function(individuo){ console.log("(", individuo.fitness, ")", individuo.genoma, individuo.diversidade); }); 
-            },
-        
-            funcaoAfinidade : function(individuo) { 
-                 var c = 0; 
-                 board.reset();
-                 board.runSequence(individuo.genoma);
-                 board.forEach(function(spot){ c+=spot.validMovesNow().length; }); 
-                 return 2*parseInt(c) + 4*(33 - board.score()) + individuo.diversidade;
-            }
-         });
-         
-        e.iniciar();
-     }
-
 
 	</script>
 
