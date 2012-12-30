@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-    	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<title>Resta 1</title>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 		<script src="http://mbostock.github.com/d3/d3.js?2.7.1"></script>
@@ -16,11 +16,17 @@
     var board;
 	
     $(document).ready(function(){
-        board = new Resta1.Board();
+        board = new Resta1.Board({width: $('body').width(), height: $(window).height()-20});
+        
+        //crtl+z bind
+        $(window).keypress( function(eventObject) { 
+            if (eventObject.ctrlKey && eventObject.keyCode == 26) {
+                board.undoLastMove();
+            }
+        } );
     });
 
 	</script>
 
 	</body>
 </html>
-

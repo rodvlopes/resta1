@@ -1,6 +1,6 @@
 
 
-importScripts('http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js')
+importScripts('../lib/jquery/jquery.hive.pollen.js');
 importScripts('Resta1.js', 'AG.js');
 
 var e;
@@ -28,13 +28,8 @@ function iniciarAG() {
         tamanhoPopulacao : 100,
         geracaoFinal : 200,
         periodoAmostra: 25,
-        //amostraHandler: function(amostra) { console.log(amostra); },
         amostraHandler: function(amostra) { 
-            self.postMessage(amostra);
-            //board = new Resta1.Board({width: 100, height: 100, sequence: amostra.melhorIndividuo.genoma, compactView: true});
-            //console.log("Geracao:", amostra.geracao); 
-            //amostra.forEach(function(individuo){ console.log("(", individuo.fitness, ")", individuo.genoma, individuo.diversidade); }); 
-            //console.timeEnd('amostra'); console.time('amostra');
+            self.postMessage({amostra: amostra});
         },
     
         funcaoAfinidade : function(individuo) { 

@@ -4,8 +4,8 @@ var Resta1 = {
     Board : function(config) {
         
         var config = $.extend({
-                width: $('body').width(),
-                height: $(window).height()-20,
+                width: 400,
+                height: 300,
                 container: 'body',
                 noView: false,
                 compactView: false
@@ -13,7 +13,7 @@ var Resta1 = {
         
         var width = config.width,
             height = config.height,
-        	slotw = Math.floor(width/7), 
+            slotw = Math.floor(width/7), 
         	dslotw = Math.floor(slotw/2), 
         	sloth = Math.floor(height/7),
         	dsloth = Math.floor(sloth/2),
@@ -220,13 +220,6 @@ var Resta1 = {
         } 
         
 
-        //crtl+z bind
-        $(window).keypress( function(eventObject) { 
-            if (eventObject.ctrlKey && eventObject.keyCode == 26) {
-                board.undoLastMove();
-            }
-        } );        
-        
         board.runSequence(config.sequence);
         
         return board;

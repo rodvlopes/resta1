@@ -8,21 +8,29 @@
         <script src="js/src/Utils.js"></script>
         <script src="js/src/Resta1.js"></script>
         <script src="js/src/AG.js"></script>
-        <script src="js/src/FastTests.js"></script>
+        <!--script src="js/src/FastTests.js"></script-->
         <link rel="stylesheet" type="text/css" media="screen" href="css/styles.css" />
+        <style>svg { margin: 2px; }</style>
 	</head>
 	 
 	<body>
 	
 	<script>
     var board, worker;
-	
+    
     $(document).ready(function(){
         
+        console.time('amostra');
         worker = new Worker('js/src/AGWebWorker.js');
 
         worker.addEventListener('message', function(e) {
-          console.log('Worker said: ', e.data);
+            console.log('Worker respondeu');
+            
+            if (e.data.amostra)
+                handleAmostra(new AG.Amostra(e.data.amostra));    
+            else
+                console.log(e.data);
+          
         }, false);
 
         worker.onerror = function(event){
@@ -30,12 +38,18 @@
             //throw new Error(event.message + " (" + event.filename + ":" + event.lineno + ")");
         };
         
-        worker.onmessage = function(e) { console.log(e); }
-        
         worker.postMessage('inicia'); // Send data to our worker.
         
     });
 
+
+    function handleAmostra(amostra) {
+            board = new Resta1.Board({width: 120, height: 120, sequence: amostra.melhorIndividuo.genoma, compactView: true});
+            console.log("Geracao:", amostra.geracao); 
+            amostra.forEach(function(individuo){ console.log("(", individuo.fitness, ")", individuo.genoma, individuo.diversidade); }); 
+            console.timeEnd('amostra'); console.time('amostra');
+            //$('body').hide(1, function(){ $('body').show() });
+    }
 	</script>
 
 	</body>

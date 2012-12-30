@@ -1,6 +1,6 @@
 var AG = {
     Execucao : function(config) {
-		// {
+    	// {
         // 		genes : ['0', '1', '2'],
         // 		tamanhoGenoma : 3,
         // 		tamanhoPopulacao : 10,
@@ -15,9 +15,10 @@ var AG = {
 		var _this = this;
 	
 		_this._init = function() {
-            
             var defaults = { geracao: 0, taxaMutacao: 0.05, geracaoFinal: 0, periodoAmostra : 10, calculaDiversidade: false }
-            $.extend(_this, defaults, config);
+            $.extend(_this, defaults); 
+            $.extend(_this, config);
+            
             _this.tamanhoGene = _this.genes[0].length;
 			_this._gerarPopulacaoInicial();
             _this._calcularDiversidade();
@@ -57,7 +58,9 @@ var AG = {
         
         
         _this._introduzirNovosIndividuos = function(populacao) {
-            var newConfig = $.extend({}, config, {subExecucao: true, geracaoFinal: 6, amostraHandler: null, tamanhoPopulacao: Math.floor(config.tamanhoPopulacao/2)});
+            var newConfig = {};
+            $.extend(newConfig, config);
+            $.extend(newConfig, {subExecucao: true, geracaoFinal: 6, amostraHandler: null, tamanhoPopulacao: Math.floor(config.tamanhoPopulacao/2)});
             var newExecucao = new AG.Execucao(newConfig);
             newExecucao.iniciar();
             var amostra = newExecucao.amostra();
@@ -134,7 +137,6 @@ var AG = {
             casal.forEach(function(individuo){
                 individuo.filhos++;
                 if (individuo.filhos == 3) {
-                    //console.log('individuo', individuo.genoma, 'tem 3 filhos');
                     _this.populacao.splice(individuo.index, 1);
                     matouAlgum = true;
                 }
@@ -158,14 +160,12 @@ var AG = {
             for (var i=0; mae.genoma == pai.genoma && i<5; i++) { //permiter que pai e mae sejam diferentes
                 mae = selecionarEstocasticamente(_this.populacao, Math.random());
             }
-            //console.log('selecionando pai', r1, pai.fitnessNormalizadoAcumulado, ' - selecionando mae', r2, mae.fitnessNormalizadoAcumulado);
             
             var casal = [pai, mae];
             return casal;
         }
         
         _this._reproduzir = function(casal) {
-            console.assert(casal.length == 2, 'Casal deve ser formado por 2 indivíduos');
             var pai = casal[0];
             var mae = casal[1];
             
@@ -183,7 +183,6 @@ var AG = {
                 }
             })(filho);
 
-            //console.log('pai', pai.genoma, '('+mae.fitness+')', 'mae', mae.genoma, '('+mae.fitness+')', 'filho', filho.genoma, 'cruzamento em', pontoCruzamento);
             return filho;
         }
 		
@@ -218,17 +217,16 @@ var AG = {
 	Individuo : function(genoma, fitness) {
 		this.genoma = genoma || '';
 		this.fitness = fitness || 0;
-		
-		console.assert(typeof(this.genoma) == 'string', 'genoma tem que ser do tipo string');
-        console.assert(typeof(this.fitness) == 'number', 'fitness tem que ser do tipo number');
 	},
 	
 	Amostra : function(params) {
-        $.extend(true, this, {
+        $.extend(this, {
             populacao: [],
     	    tamanhoAmostra: 0,
             geracao: 0
-        }, params);
+        });
+        
+        $.extend(this, params);
 		
 		
 		//this.populacao.sort(function(a,b){return a.fitness - b.fitness});
