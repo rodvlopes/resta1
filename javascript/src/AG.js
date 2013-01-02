@@ -21,7 +21,10 @@ var AG = {
             
             _this.tamanhoGene = _this.genes[0].length;
 			_this._gerarPopulacaoInicial();
-            _this._calcularDiversidade();
+            
+            //if (_this.calculaDiversidade)
+                _this._calcularDiversidade();
+            
             _this._calcularFitness();
             _this._normalizarFitnessEOrdenar();
             
@@ -60,7 +63,7 @@ var AG = {
         _this._introduzirNovosIndividuos = function(populacao) {
             var newConfig = {};
             $.extend(newConfig, config);
-            $.extend(newConfig, {subExecucao: true, geracaoFinal: 6, amostraHandler: null, tamanhoPopulacao: Math.floor(config.tamanhoPopulacao/2)});
+            $.extend(newConfig, {subExecucao: true, geracaoFinal: 2, amostraHandler: null, tamanhoPopulacao: Math.floor(config.tamanhoPopulacao/2)});
             var newExecucao = new AG.Execucao(newConfig);
             newExecucao.iniciar();
             var amostra = newExecucao.amostra();
@@ -193,7 +196,7 @@ var AG = {
                 
                 _this.novaGeracao();
                 
-                if (_this.geracao % _this.periodoAmostra == 0 && _this.amostraHandler) {
+                if (_this.geracao % _this.periodoAmostra == 0 && _this.amostraHandler && !_this.subExecucao) {
                     _this.amostraHandler(_this.amostra());
                 }
                 
@@ -227,6 +230,7 @@ var AG = {
         });
         
         $.extend(this, params);
+        this.populacao = _.clone(params.populacao);
 		
 		
 		//this.populacao.sort(function(a,b){return a.fitness - b.fitness});

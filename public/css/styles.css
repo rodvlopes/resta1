@@ -1,6 +1,7 @@
 svg {
     float: left;
-    border: solid 1px #aaa;
+    border: solid 3px #aaa;
+    border-radius: 5px;
 }
 
 svg text {
@@ -12,6 +13,8 @@ svg text {
 svg text.score {
 	fill: #999;
 	font-size: 1em;
+    stroke : grey;
+    stroke-width : 1px;
 }
 
 circle {

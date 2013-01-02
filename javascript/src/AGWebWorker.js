@@ -1,6 +1,4 @@
-
-
-importScripts('../lib/jquery/jquery.hive.pollen.js');
+importScripts('../lib/jquery/jquery.hive.pollen.js', '../lib/underscore.js');
 importScripts('Resta1.js', 'AG.js');
 
 var e;
@@ -14,11 +12,11 @@ function iniciarAG() {
     
     var pesos = 
          [10,09,10,
-          08,07,08,
-    10,08,04,03,04,08,10,
-    09,07,03,01,03,07,09,
-    10,08,04,03,04,08,10,
-          08,07,08,
+          07,05,07,
+    10,07,02,02,03,07,10,
+    09,05,03,01,02,05,09,
+    10,07,02,02,03,07,10,
+          07,05,07,
           10,09,10]
     
     
@@ -26,8 +24,8 @@ function iniciarAG() {
         genes : genes,
         tamanhoGenoma : 62,
         tamanhoPopulacao : 100,
-        geracaoFinal : 200,
-        periodoAmostra: 25,
+        geracaoFinal : 100,
+        periodoAmostra: 10,
         amostraHandler: function(amostra) { 
             self.postMessage({amostra: amostra});
         },
@@ -39,6 +37,7 @@ function iniciarAG() {
             boardAg.forEach(function(spot, i){ /*c += spot.validMovesNow().length;*/ peso += spot.empty() ? pesos[i] : 0;}); 
             //return 5*(peso + 4*parseInt(c) + (33 - boardAg.score())) + individuo.diversidade;   
             return peso;
+            //return (33 - boardAg.score()) * peso;
         }
      });
     
