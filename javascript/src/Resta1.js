@@ -77,6 +77,15 @@ var Resta1 = {
             }
         });
         
+		board.validMovesNow = function() {
+			var moves = [];
+			board.forEach(function(spot, i){ 
+				moves = moves.concat(spot.validMovesNow());
+			});
+			
+			return moves;
+		}
+
         board.sequence = new Resta1.Sequence();
         
         board.score = function() { return 32 - board.sequence.length; }
@@ -109,6 +118,11 @@ var Resta1 = {
             
             updateView();
         } 
+
+
+		board.runMove = function(m) {
+			board[m[2]].runMove(m);
+		}
         
         
         board.runSequenceAnimated = function(seqStr) {
