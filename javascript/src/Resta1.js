@@ -27,9 +27,22 @@ var Resta1 = {
         	{x:0, y:4*sloth}, {x:1*slotw, y:4*sloth}, {x:2*slotw, y:4*sloth}, {x:3*slotw, y:4*sloth}, {x:4*slotw, y:4*sloth}, {x:5*slotw, y:4*sloth}, {x:6*slotw, y:4*sloth},
         	{x: 2*slotw, y:5*sloth}, {x:3*slotw, y:5*sloth}, {x:4*slotw, y:5*sloth},
         	{x: 2*slotw, y:6*sloth}, {x:3*slotw, y:6*sloth}, {x:4*slotw, y:6*sloth}
-        ]
+        ];
         
         board.validMoves = [[0,1,2],[0,3,8],[1,4,9],[2,1,0],[2,5,10],[3,4,5],[3,8,15],[4,9,16],[5,4,3],[5,10,17],[6,7,8],[6,13,20],[7,8,9],[7,14,21],[8,3,0],[8,7,6],[8,9,10],[8,15,22],[9,4,1],[9,8,7],[9,10,11],[9,16,23],[10,5,2],[10,9,8],[10,11,12],[10,17,24],[11,10,9],[11,18,25],[12,11,10],[12,19,26],[13,14,15],[14,15,16],[15,8,3],[15,14,13],[15,16,17],[15,22,27],[16,9,4],[16,15,14],[16,17,18],[16,23,28],[17,10,5],[17,16,15],[17,18,19],[17,24,29],[18,17,16],[19,18,17],[20,13,6],[20,21,22],[21,14,7],[21,22,23],[22,15,8],[22,21,20],[22,23,24],[22,27,30],[23,16,9],[23,22,21],[23,24,25],[23,28,31],[24,17,10],[24,23,22],[24,25,26],[24,29,32],[25,18,11],[25,24,23],[26,19,12],[26,25,24],[27,22,15],[27,28,29],[28,23,16],[29,24,17],[29,28,27],[30,27,22],[30,31,32],[31,28,23],[32,29,24],[32,31,30]];
+        
+        //guardar o index do movimento juntos. [de, meio, para, index do movimento]
+        board.validMoves.forEach(function(m, mi){ mi = mi.toString(); mi = mi.length == 1 ? '0'+mi : mi; m.push(mi); }); 
+        
+        board.validMovesNow = function() {
+            var moves = [];
+            board.forEach(function(spot) {moves = moves.concat(spot.validMovesNow());});
+            return moves;
+        }
+        
+        board.validMovesIndexNow = function() {
+            return board.validMovesNow().map(function(m){ return m[3]; });
+        }
         
         board.forEach(function(spot, i){ 
             //Adiciona o deslocamento para centralizar o círculo
@@ -77,15 +90,6 @@ var Resta1 = {
             }
         });
         
-		board.validMovesNow = function() {
-			var moves = [];
-			board.forEach(function(spot, i){ 
-				moves = moves.concat(spot.validMovesNow());
-			});
-			
-			return moves;
-		}
-
         board.sequence = new Resta1.Sequence();
         
         board.score = function() { return 32 - board.sequence.length; }
@@ -118,11 +122,6 @@ var Resta1 = {
             
             updateView();
         } 
-
-
-		board.runMove = function(m) {
-			board[m[2]].runMove(m);
-		}
         
         
         board.runSequenceAnimated = function(seqStr) {
