@@ -2,26 +2,78 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    	<title>Resta 1</title>
+		<title>Resta 1</title>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
         <script src="js/lib/underscore.js"></script>
+		<script src="http://mbostock.github.com/d3/d3.js?2.7.1"></script>
         <script src="js/src/Utils.js"></script>
         <script src="js/src/Resta1.js"></script>
-        <script src="js/src/Busca.js"></script>
+        <script src="js/src/AG.js"></script>
+		<script src="js/src/Busca.js"></script>
         <link rel="stylesheet" type="text/css" media="screen" href="css/styles.css" />
+        <style>svg { margin: 2px; }</style>
 	</head>
 	 
 	<body>
 	<script>
+    var board, worker;
     
     $(document).ready(function(){
         
-        //console.time('busca');
-        //console.timeEnd('busca'); console.time('busca');
+        console.time('amostra');
+        worker = new Worker('js/src/AGWebWorker.js');
+
+        worker.addEventListener('message', function(e) {
+            console.log('Worker respondeu');
+            
+            if (e.data.amostra)
+                handleAmostra(new AG.Amostra(e.data.amostra));    
+            else
+                console.log(e.data);
+          
+        }, false);
+
+        worker.onerror = function(event){
+            console.error(event);
+        };
+        
+        worker.postMessage('inicia');
         
     });
 
-    </script>
+
+
+    function criaWorkerBusca(sequencia) {
+        
+        worker = new Worker('js/src/BuscaWebWorker.js');
+
+        worker.addEventListener('message', function(e) {
+            console.log('BuscaWebWorker respondeu');
+            
+            if (e.data.solucoes) {
+                e.data.solucoes.forEach(function(s){ console.log(s); });
+            }
+            else
+                console.log(e.data);
+          
+        }, false);
+
+        worker.onerror = function(event){
+            console.error(event);
+        };
+        
+        worker.postMessage({sequenciaInicial: sequencia});
+    }
+    
+
+    function handleAmostra(amostra) {
+            board = new Resta1.Board({width: 120, height: 120, sequence: amostra.melhorIndividuo.genoma, compactView: true});
+            console.log("Geracao:", amostra.geracao); 
+            amostra.forEach(function(individuo){ console.log("(", individuo.fitness, ")", individuo.genoma, individuo.diversidade); }); 
+            console.timeEnd('amostra'); console.time('amostra');
+            //$('body').hide(1, function(){ $('body').show() });
+    }
+	</script>
 
 	</body>
 </html>

@@ -1,8 +1,6 @@
 importScripts('../lib/jquery/jquery.hive.pollen.js', '../lib/underscore.js');
 importScripts('Resta1.js', 'Busca.js');
 
-var e;
-    
 function iniciarBusca(sequenciaIncial) {
     var board = new Resta1.Board({noView:true});
     board.runSequence(sequenciaIncial);
@@ -29,8 +27,8 @@ function iniciarBusca(sequenciaIncial) {
 
 
 self.addEventListener('message', function(e) {
-    if (e.data == 'inicia') {
+    if (e.data.sequenciaInicial) {
         self.postMessage('buscando...');
-        iniciarBusca();
+        iniciarBusca(e.data.sequenciaInicial);
     }
 }, false);
