@@ -1,4 +1,4 @@
-//winning sequence: 31,66,70,71,75,37,06,35,47,55,30,10,32,71,49,43,65,56,29,65,01,09,16,40,02,69,04,44,36,26,07
+//winning sequence: "31667071753706354755301032714943655629650109164002690444362607"
 
 var Resta1 = {
     Board : function(config) {
@@ -207,7 +207,14 @@ var Resta1 = {
                     .attr("x", width-100)
                 	.attr("y", height-30+'px')
                 	.attr("class", 'score')
-                	.text(function() { return 'Resta ' + board.score()});                
+                	.text(function() { return 'Resta ' + board.score()});
+                
+                svg.append("svg:text")
+                    .attr("x", 20)
+                    .attr("y", height-30+'px')
+                    .attr("class", 'solucoes')
+                	.text(function() { return ''; });
+                            
             }
                             
             return svg;
@@ -229,9 +236,43 @@ var Resta1 = {
             else {
                 view.select(".score")
                 	.text(function() { return 'Resta ' + board.score()});
+                    
+                if (board.score() < 13) {
+                    board.buscarSolucao(board.sequence.toString(), function(solucoes){
+                        view.select(".solucoes")
+                            .text('há x soluções'.replace('x', solucoes.length));
+                            
+                        console.log(solucoes);
+                    });
+                }
+                else
+                    view.select(".solucoes")
+                            .text('');
             }
         } 
+
         
+        board.buscarSolucao = function(sequencia, handleSolucoes) {
+        
+            if (board.workerBusca) board.workerBusca.terminate();
+            
+            board.workerBusca = new Worker('js/src/BuscaWebWorker.js');
+        
+            board.workerBusca.addEventListener('message', function(e) {
+        
+                if (e.data.solucoes)
+            		handleSolucoes(e.data.solucoes);
+                else
+                    console.log(e.data);
+              
+            }, false);
+        
+            board.workerBusca.onerror = function(event){
+                console.error(event);
+            };
+            
+            board.workerBusca.postMessage({sequenciaInicial: sequencia, noCentro: true});
+        }
 
         board.runSequence(config.sequence);
         
@@ -249,5 +290,6 @@ var Resta1 = {
     },
     
 }
+
 
 Resta1.Sequence.prototype = new Array;

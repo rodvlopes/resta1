@@ -22,7 +22,7 @@
 			Solucoes encontradas: <span id="solucoesNum">.</span>
 			Inicio: <span id="inicioTempo">.</span>
 			Fim: <span id="fimTempo">.</span>
-			<input id="noCentro" type="checkbox" value="1"><span>no centro?</span>
+			<input id="noCentro" type="checkbox" value="1"><span>No centro?</span>
 		</div>
 		<div id="palco"></div>
 	<script>
@@ -47,23 +47,23 @@
             console.error(event);
         };
 
-				$('#iniciaSimulacao').click(function(){
-						$('#simulacaoNum').html('0');
-						$('#inicioTempo').html((new Date()).toTimeString().split(' ')[0]);
-						pausado = false;
-						workerAG.postMessage('inicia');
-						this.disabled = !this.disabled;
-						$('#terminaSimulacao')[0].disabled = !$('#terminaSimulacao')[0].disabled;
-						$('#fimTempo').html('.');
-            $('#solucoesNum').html('.');
-				});
-				
-				$('#terminaSimulacao').click(function(){
-						pausado = true;
-						$('#iniciaSimulacao')[0].disabled = !$('#iniciaSimulacao')[0].disabled;
-						this.disabled = !this.disabled;
-				});
-			});//ready
+		$('#iniciaSimulacao').click(function(){
+				$('#simulacaoNum').html('0');
+				$('#inicioTempo').html((new Date()).toTimeString().split(' ')[0]);
+				pausado = false;
+				workerAG.postMessage('inicia');
+				this.disabled = !this.disabled;
+				$('#terminaSimulacao')[0].disabled = !$('#terminaSimulacao')[0].disabled;
+				$('#fimTempo').html('.');
+                $('#solucoesNum').html('0');
+		});
+		
+		$('#terminaSimulacao').click(function(){
+				pausado = true;
+				$('#iniciaSimulacao')[0].disabled = !$('#iniciaSimulacao')[0].disabled;
+				this.disabled = !this.disabled;
+		});
+	});//ready
 
 
 
@@ -75,7 +75,7 @@
             // console.log('BuscaWebWorker respondeu');
 
             if (e.data.solucoes) {
-								handleSolucoes(e.data.solucoes);
+				handleSolucoes(e.data.solucoes);
             }
             else
                 console.log(e.data);
@@ -86,7 +86,7 @@
             console.error(event);
         };
         
-        workerBusca.postMessage({sequenciaInicial: sequencia, noCentro: $('#noCentro').is(':checked')});
+        workerBusca.postMessage({sequenciaInicial: sequencia, noCentro: $('#noCentro').is(':checked'), numSolucoes: 1});
     }
     
 
@@ -99,8 +99,8 @@
 				if (board.score() < 14) {
 					var sequence = board.sequence.toString();
 					var elemId = 'candidato' + $('#simulacaoNum').html();
-					$('#palco').append('<div id="'+elemId+'" class="candidato"><div class="bar"><a href="index.html?sequence='+sequence+'" target="_blank" title="executar este jogo em outra aba">e</a><a href="javascript:console.log(\''+sequence+'\');"  title="mostrar sequencia no console">i</a></div></div>');
-					criaWorkerBusca(board.sequence.toString());
+                    criaContainerParaTabuleiro(elemId, sequence, 'candidato');
+					criaWorkerBusca(sequence);
 					board = new Resta1.Board({width: 120, height: 120, container: '#'+elemId, sequence: sequence, compactView: true});
 				}
 					
@@ -113,16 +113,22 @@
         
     }
 
-		function handleSolucoes(ss) {
-			if (ss.length > 0) {
-				solucoes = solucoes.concat(ss);
-	      ss.forEach(function(s){ console.log(s); });
-				$('#solucoesNum').html(solucoes.length.toString());
-				var s1 = ss[0];
-				board = new Resta1.Board({width: 120, height: 120, container: '#palco', sequence: s1, compactView: true});
-			}
-		}
-		
+	function handleSolucoes(ss) {
+		if (ss.length > 0) {
+			solucoes = solucoes.concat(ss);
+            ss.forEach(function(s){ console.log(s); });
+        	$('#solucoesNum').html(solucoes.length.toString());
+        	var s1 = ss[0];
+            var elemId = 'solucao'+solucoes.length;
+            criaContainerParaTabuleiro(elemId, s1, 'solucao');
+        	board = new Resta1.Board({width: 120, height: 120, container: '#'+elemId, sequence: s1, compactView: true});
+        }
+	}
+	
+    function criaContainerParaTabuleiro(elemId, sequence, cls) {
+        $('#palco').append('<div id="'+elemId+'" class="'+cls+'"><div class="bar"><a href="index.html?sequence='+sequence+'" target="_blank" title="executar este jogo em outra aba">e</a><a href="javascript:console.log(\''+sequence+'\');"  title="mostrar sequencia no console">i</a></div></div>');
+    }
+    
     $(window).keypress( function(eventObject) { 
         if (eventObject.keyCode == 105) {
             $('#iniciaSimulacao').click();

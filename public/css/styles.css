@@ -10,12 +10,13 @@ svg text {
 	cursor:default;
 }
 
-svg text.score {
+svg text.score, svg text.solucoes {
 	fill: #999;
 	font-size: 1em;
     stroke : grey;
     stroke-width : 1px;
 }
+
 
 circle {
 	stroke : grey;
@@ -41,15 +42,6 @@ circle.destination {
 	margin-right: 30px;
 }
 
-.semResposta {
-	float: left;
-	width: 50px;
-	height: 120px;
-	text-align: cell;
-	vertical-align: middle;
-	display: table-cell;
-}
-
 div.bar {
 	float: left;
 	letter-spacing: 5px;
@@ -58,6 +50,7 @@ div.bar {
 	position: relative;
 	left: 11px;	
 	top: 4px;
+    line-height: 16px;
 }
 
 div.bar a {
@@ -70,10 +63,16 @@ div.bar a:hover {
 	font-weight: bold;
 }
 
-.candidato {
+.candidato, .solucao {
 	float: left;
 	width: 134px;
 }
 
+.solucao svg {
+    border-color: #BEDAB9;
+}
+
+
 #iniciaSimulacao:first-letter {text-decoration:underline}
 #terminaSimulacao:first-letter {text-decoration:underline}
+

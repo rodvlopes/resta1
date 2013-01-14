@@ -1,7 +1,7 @@
 importScripts('../lib/jquery/jquery.hive.pollen.js', '../lib/underscore.js');
 importScripts('Resta1.js', 'Busca.js');
 
-function iniciarBusca(sequenciaIncial, noCentro) {
+function iniciarBusca(sequenciaIncial, noCentro, numSolucoes) {
     var board = new Resta1.Board({noView:true});
     board.runSequence(sequenciaIncial);
     
@@ -21,7 +21,7 @@ function iniciarBusca(sequenciaIncial, noCentro) {
 			return board.validMovesIndexNow();
 		}
 	});
-	var solucoes = busca.solucoes(1);
+	var solucoes = busca.solucoes(numSolucoes);
 	
 	self.postMessage({solucoes: solucoes});
 	self.close();
@@ -32,6 +32,6 @@ function iniciarBusca(sequenciaIncial, noCentro) {
 self.addEventListener('message', function(e) {
     if (e.data.sequenciaInicial) {
         self.postMessage('buscando...');
-        iniciarBusca(e.data.sequenciaInicial, e.data.noCentro);
+        iniciarBusca(e.data.sequenciaInicial, e.data.noCentro, e.data.numSolucoes);
     }
 }, false);
