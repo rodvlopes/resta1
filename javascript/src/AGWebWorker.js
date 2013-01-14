@@ -11,13 +11,13 @@ function iniciarAG() {
     for (var i=0; i< boardAg.validMoves.length; i++) { genes.push( i.toString().length == 1 ? '0'+i : i.toString() ); }
     
     var pesos = 
-         [10,09,10,
-          07,05,07,
-    10,07,02,02,03,07,10,
-    09,05,03,01,02,05,09,
-    10,07,02,02,03,07,10,
-          07,05,07,
-          10,09,10]
+         [08,09,08,
+          05,07,05,
+    08,05,02,02,02,05,08,
+    09,07,02,01,02,07,09,
+    08,05,02,02,02,05,08,
+          05,07,05,
+          08,09,08]
     
     
     e = new AG.Execucao({
@@ -26,7 +26,10 @@ function iniciarAG() {
         tamanhoPopulacao : 100,
         geracaoFinal : 100,
         periodoAmostra: 10,
-        amostraHandler: function(amostra) { 
+        // amostraHandler: function(amostra) { 
+        //             self.postMessage({amostra: amostra});
+        //         },
+		ultimaAmostraHandler: function(amostra) { 
             self.postMessage({amostra: amostra});
         },
     
@@ -49,7 +52,7 @@ function iniciarAG() {
 
 self.addEventListener('message', function(e) {
     if (e.data == 'inicia') {
-        self.postMessage('ok');
+        self.postMessage('inciando ag');
         iniciarAG();
     }
 }, false);

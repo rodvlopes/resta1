@@ -36,3 +36,44 @@ circle.destination {
 	fill: #E0FFE4;
 	stroke : green;
 }
+
+#simulacaoNum, #solucoesNum, #inicioTempo, #fimTempo {
+	margin-right: 30px;
+}
+
+.semResposta {
+	float: left;
+	width: 50px;
+	height: 120px;
+	text-align: cell;
+	vertical-align: middle;
+	display: table-cell;
+}
+
+div.bar {
+	float: left;
+	letter-spacing: 5px;
+	word-wrap: break-word;
+	width: 0;
+	position: relative;
+	left: 11px;	
+	top: 4px;
+}
+
+div.bar a {
+	color: #aaa;
+	text-shadow: -1px -1px #333;
+	text-decoration: none;
+}
+
+div.bar a:hover {
+	font-weight: bold;
+}
+
+.candidato {
+	float: left;
+	width: 134px;
+}
+
+#iniciaSimulacao:first-letter {text-decoration:underline}
+#terminaSimulacao:first-letter {text-decoration:underline}

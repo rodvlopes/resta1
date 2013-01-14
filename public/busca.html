@@ -15,16 +15,26 @@
 	</head>
 	 
 	<body>
+		<div>
+			<button id="iniciaSimulacao" accesskey="i">inicia</button>
+			<button id="terminaSimulacao" accesskey="t" disabled>termina</button>
+			Simulacao #<span id="simulacaoNum">.</span>
+			Solucoes encontradas: <span id="solucoesNum">.</span>
+			Inicio: <span id="inicioTempo">.</span>
+			Fim: <span id="fimTempo">.</span>
+			<input id="noCentro" type="checkbox" value="1"><span>no centro?</span>
+		</div>
+		<div id="palco"></div>
 	<script>
-    var board, worker;
+    var board, workerAG, pausado=true, solucoes=[];
     
     $(document).ready(function(){
         
         console.time('amostra');
-        worker = new Worker('js/src/AGWebWorker.js');
+        workerAG = new Worker('js/src/AGWebWorker.js');
 
-        worker.addEventListener('message', function(e) {
-            console.log('Worker respondeu');
+        workerAG.addEventListener('message', function(e) {
+            //console.log('Worker respondeu');
             
             if (e.data.amostra)
                 handleAmostra(new AG.Amostra(e.data.amostra));    
@@ -33,48 +43,95 @@
           
         }, false);
 
-        worker.onerror = function(event){
+        workerAG.onerror = function(event){
             console.error(event);
         };
-        
-        worker.postMessage('inicia');
-        
-    });
+
+				$('#iniciaSimulacao').click(function(){
+						$('#simulacaoNum').html('0');
+						$('#inicioTempo').html((new Date()).toTimeString().split(' ')[0]);
+						pausado = false;
+						workerAG.postMessage('inicia');
+						this.disabled = !this.disabled;
+						$('#terminaSimulacao')[0].disabled = !$('#terminaSimulacao')[0].disabled;
+						$('#fimTempo').html('.');
+            $('#solucoesNum').html('.');
+				});
+				
+				$('#terminaSimulacao').click(function(){
+						pausado = true;
+						$('#iniciaSimulacao')[0].disabled = !$('#iniciaSimulacao')[0].disabled;
+						this.disabled = !this.disabled;
+				});
+			});//ready
 
 
 
     function criaWorkerBusca(sequencia) {
         
-        worker = new Worker('js/src/BuscaWebWorker.js');
+        var workerBusca = new Worker('js/src/BuscaWebWorker.js');
 
-        worker.addEventListener('message', function(e) {
-            console.log('BuscaWebWorker respondeu');
-            
+        workerBusca.addEventListener('message', function(e) {
+            // console.log('BuscaWebWorker respondeu');
+
             if (e.data.solucoes) {
-                e.data.solucoes.forEach(function(s){ console.log(s); });
+								handleSolucoes(e.data.solucoes);
             }
             else
                 console.log(e.data);
           
         }, false);
 
-        worker.onerror = function(event){
+        workerBusca.onerror = function(event){
             console.error(event);
         };
         
-        worker.postMessage({sequenciaInicial: sequencia});
+        workerBusca.postMessage({sequenciaInicial: sequencia, noCentro: $('#noCentro').is(':checked')});
     }
     
 
     function handleAmostra(amostra) {
-            board = new Resta1.Board({width: 120, height: 120, sequence: amostra.melhorIndividuo.genoma, compactView: true});
-            console.log("Geracao:", amostra.geracao); 
-            amostra.forEach(function(individuo){ console.log("(", individuo.fitness, ")", individuo.genoma, individuo.diversidade); }); 
-            console.timeEnd('amostra'); console.time('amostra');
-            //$('body').hide(1, function(){ $('body').show() });
-    }
-	</script>
+        //amostra.forEach(function(individuo){ console.log("(", individuo.fitness, ")", individuo.genoma, individuo.diversidade); }); 
+        //console.timeEnd('amostra'); console.time('amostra');
 
+				board = new Resta1.Board({sequence: amostra.melhorIndividuo.genoma, noView: true});
+				
+				if (board.score() < 14) {
+					var sequence = board.sequence.toString();
+					var elemId = 'candidato' + $('#simulacaoNum').html();
+					$('#palco').append('<div id="'+elemId+'" class="candidato"><div class="bar"><a href="index.html?sequence='+sequence+'" target="_blank" title="executar este jogo em outra aba">e</a><a href="javascript:console.log(\''+sequence+'\');"  title="mostrar sequencia no console">i</a></div></div>');
+					criaWorkerBusca(board.sequence.toString());
+					board = new Resta1.Board({width: 120, height: 120, container: '#'+elemId, sequence: sequence, compactView: true});
+				}
+					
+				if (!pausado) workerAG.postMessage('inicia');
+				
+				$('#simulacaoNum').html( parseInt($('#simulacaoNum').html())+1 );
+				
+				if (pausado) 
+					$('#fimTempo').html((new Date()).toTimeString().split(' ')[0]);
+        
+    }
+
+		function handleSolucoes(ss) {
+			if (ss.length > 0) {
+				solucoes = solucoes.concat(ss);
+	      ss.forEach(function(s){ console.log(s); });
+				$('#solucoesNum').html(solucoes.length.toString());
+				var s1 = ss[0];
+				board = new Resta1.Board({width: 120, height: 120, container: '#palco', sequence: s1, compactView: true});
+			}
+		}
+		
+    $(window).keypress( function(eventObject) { 
+        if (eventObject.keyCode == 105) {
+            $('#iniciaSimulacao').click();
+        }
+        if (eventObject.keyCode == 116) {
+            $('#terminaSimulacao').click();
+        }
+    } );
+	</script>
 	</body>
 </html>
 

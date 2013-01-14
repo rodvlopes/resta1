@@ -17,6 +17,9 @@
 	
     $(document).ready(function(){
         board = new Resta1.Board({width: $('body').width(), height: $(window).height()-20});
+
+				if (getUrlVars('sequence'))
+					board.runSequenceAnimated(getUrlVars('sequence'));
         
         //crtl+z bind
         $(window).keypress( function(eventObject) { 

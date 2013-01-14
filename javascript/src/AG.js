@@ -202,6 +202,10 @@ var AG = {
                 
             }
             
+			if (_this.ultimaAmostraHandler && !_this.subExecucao) {
+                _this.ultimaAmostraHandler(_this.amostra());
+            }
+
 		}
 		
 		_this.amostra = function(tamanhoAmostra) {

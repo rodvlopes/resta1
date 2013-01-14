@@ -150,6 +150,10 @@
 	console.assert(solucoes[0] == '01215');
 	console.assert(solucoes[1] == '0125' );
 	console.assert(solucoes[2] == '01234');
+
+	board.sequencia = '012';
+	solucoes = busca.solucoes(2);
+	console.assert(solucoes.length == 2);
     console.log('Finalizado os testes do componente Busca unitário.')
 	
 })();
