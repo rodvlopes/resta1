@@ -10,11 +10,19 @@ svg text {
 	cursor:default;
 }
 
-svg text.score, svg text.solucoes {
+svg text.score, svg text.solucoes, svg text.resetButton {
 	fill: #999;
 	font-size: 1em;
     stroke : grey;
     stroke-width : 1px;
+}
+
+svg text.resetButton {
+    cursor: pointer;
+}
+
+svg text.resetButton:hover {
+    stroke: green;
 }
 
 
@@ -75,4 +83,3 @@ div.bar a:hover {
 
 #iniciaSimulacao:first-letter {text-decoration:underline}
 #terminaSimulacao:first-letter {text-decoration:underline}
-

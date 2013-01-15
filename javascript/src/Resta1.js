@@ -210,11 +210,17 @@ var Resta1 = {
                 	.text(function() { return 'Resta ' + board.score()});
                 
                 svg.append("svg:text")
-                    .attr("x", 20)
+                    .attr("x", 30)
                     .attr("y", height-30+'px')
                     .attr("class", 'solucoes')
                 	.text(function() { return ''; });
-                            
+                
+                svg.append("svg:text")
+                    .attr("x", width-100)
+                    .attr("y", 30+'px')
+                    .attr("class", 'resetButton')
+                    .text('Reset')
+                    .on("click", function() { board.reset(); });
             }
                             
             return svg;
@@ -237,17 +243,20 @@ var Resta1 = {
                 view.select(".score")
                 	.text(function() { return 'Resta ' + board.score()});
                     
-                if (board.score() < 13) {
+                if (board.score() == 1) 
+                    view.select(".solucoes").text('tu é o cara!');
+                else if (board.score() < 13) {
                     board.buscarSolucao(board.sequence.toString(), function(solucoes){
                         view.select(".solucoes")
-                            .text('há x soluções'.replace('x', solucoes.length));
+                            .text('Há x soluções'.replace('x', solucoes.length));
                             
                         console.log(solucoes);
                     });
                 }
-                else
-                    view.select(".solucoes")
-                            .text('');
+                else {
+                    if (board.workerBusca) board.workerBusca.terminate();
+                    view.select(".solucoes").text('');
+                }
             }
         } 
 
