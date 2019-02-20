@@ -1,11 +1,11 @@
-Solitaire Genetic Algorithm / Resta 1 Algorítimo Genético
-=========================================================
+Peg Solitaire Genetic Algorithm / Resta 1 Algorítimo Genético
+=============================================================
 
 Description
 -----------
 
 This project aims to implement a solution via Genetics Algorithm (GA) to solve the
-solitaire problem. 
+Peg solitaire problem. 
 
 A pure GA solution is not possible as described here: http://www.glauserweb.ch/Solitaire/solitaire.htm
 
