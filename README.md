@@ -13,7 +13,7 @@ http://www.glauserweb.ch/Solitaire/solitaire.htm
 DEMO
 ----
 
-http://resta1.rodrigolop.es/
+https://rodrigolop.es/resta1
 
 
 Features
