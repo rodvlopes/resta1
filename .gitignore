@@ -3,3 +3,6 @@
 log/*.log
 tmp/
 .rvmrc
+build/
+node_modules/
+.vscode/
