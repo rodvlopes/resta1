@@ -3,6 +3,6 @@
 log/*.log
 tmp/
 .rvmrc
-build/
+static/tsbuild/
 node_modules/
 .vscode/

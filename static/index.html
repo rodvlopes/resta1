@@ -17,7 +17,7 @@
     var board;
 	
     $(document).ready(function(){
-        board = new Resta1.Board({width: $('body').width(), height: $(window).height()-20});
+        board = new PegSolitaire.Board({width: $('body').width(), height: $(window).height()-20});
 
 				if (getUrlVars('sequence'))
 					board.runSequenceAnimated(getUrlVars('sequence'));

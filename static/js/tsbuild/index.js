@@ -2,9 +2,7 @@
 //   const a = [1, 2, 3, 5, 6]
 //   console.log('1', a)
 // }
-
-function sum(a: number, b: number): number {
-  return a + b
+function sum(a, b) {
+    return a + b;
 }
-
-export default sum
+export default sum;
