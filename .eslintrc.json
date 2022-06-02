@@ -11,6 +11,8 @@
   },
   "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
-    "prettier/prettier": 2 //Means error,
+    "prettier/prettier": "error",
+    "curly": "error",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }

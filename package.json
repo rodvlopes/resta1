@@ -7,7 +7,7 @@
   "scripts": {
     "start": "http-server -p 8000 .",
     "lint": "eslint src/",
-    "lint-clean": "clear; eslint",
+    "lint-clean": "clear; eslint --fix",
     "lint-watch": "onchange '**/*.ts' -- npm run lint-clean {{changed}}",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
     "tsc": "tsc -w",
