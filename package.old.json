@@ -1,0 +1,45 @@
+{
+  "name": "resta1",
+  "version": "2.0.0",
+  "description": "A web peg solitaire game with genetic algorithm solver",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "http-server -p 8000 .",
+    "lint": "eslint src/",
+    "lint-clean": "clear; eslint --fix",
+    "lint-watch": "onchange '**/*.ts' -- npm run lint-clean {{changed}}",
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "tsc": "tsc -w",
+    "test": "node --experimental-vm-modules ./node_modules/.bin/jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodvlopes/resta1.git"
+  },
+  "keywords": [
+    "peg",
+    "solitaire",
+    "genetic",
+    "algorithm",
+    "solver"
+  ],
+  "author": "rodvlopes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rodvlopes/resta1/issues"
+  },
+  "homepage": "https://github.com/rodvlopes/resta1#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
+    "eslint": "^8.16.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "http-server": "^14.1.0",
+    "jest": "^28.1.0",
+    "onchange": "^7.1.0",
+    "prettier": "^2.6.2",
+    "typescript": "^4.7.2"
+  }
+}
