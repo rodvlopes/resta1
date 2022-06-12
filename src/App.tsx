@@ -1,6 +1,6 @@
 import React from 'react'
 import Board2 from './PegSolitaire'
-import { userPrefesDark } from './Util'
+import { userPrefesDark } from './MMUtil'
 
 function App() {
   const className = userPrefesDark() ? 'App dark' : 'App'

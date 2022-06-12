@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import App from './App'
 
-jest.mock('./Util.ts')
+jest.mock('./MMUtil.ts')
 
 test('renders learn react link', () => {
   render(<App />)

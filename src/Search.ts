@@ -12,9 +12,7 @@ export function findSolutions(
     goal: (sequence: string) => {
       boardEngine.reset()
       boardEngine.runSequence(sequence)
-      return inTheMiddle
-        ? !boardEngine.centralHole.isEmpty() && boardEngine.score === 1
-        : boardEngine.score === 1
+      return boardEngine.isWinner(inTheMiddle)
     },
     getPossibleMoves: () => boardEngine.possibleMoves.map((m) => m[3]),
   }).execute(initialSequence)

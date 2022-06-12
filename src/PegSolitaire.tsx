@@ -1,7 +1,7 @@
 //winning sequence: "31667071753706354755301032714943655629650109164002690444362607"
 import React from 'react'
 import useD3 from './Hooks'
-import { buildWorker } from './Util'
+import { buildWorker } from './MMUtil'
 
 // simple react setState example: https://codepen.io/Hafoux/pen/ZEOwzdQ?editors=1010
 
@@ -18,10 +18,7 @@ var positions =
     33 positions
 */
 
-//TODO: set a namespace
-
 const pad2 = (i: number): string => `${i.toString()}`.padStart(2, '0')
-// const clone = (obj : any) => JSON.SON.stringify(obj)
 
 type MoveT = [from: number, mid: number, to: number, id: string]
 
@@ -30,9 +27,10 @@ class BoardHole {
   x: number
   y: number
   id: number
-  state: '' | 'empty' | 'destination' | 'selected' //TODO: rename '' -> 'peg'
+  state: 'peg' | 'empty' | 'destination' | 'selected'
   validMoves: MoveT[]
   refMove: MoveT | null
+  static central = 16
 
   constructor(
     { x, y }: { x: number; y: number },
@@ -44,8 +42,7 @@ class BoardHole {
     dholeh = 0
   ) {
     this.id = id
-    this.state = id === 16 ? 'empty' : '' //TODO: name 16-magic-number
-    this.validMoves = validMoves
+    this.state = id === BoardHole.central ? 'empty' : 'peg'
     this.validMoves = validMoves
     this.refMove = null
     //Adiciona o deslocamento para centralizar o círculo
@@ -68,7 +65,7 @@ class BoardHole {
   cleanState() {
     switch (this.state) {
       case 'selected':
-        this.state = ''
+        this.state = 'peg'
         break
       case 'destination':
         this.state = 'empty'
@@ -84,19 +81,19 @@ class BoardHole {
   }
 
   reset() {
-    this.state = this.id === 16 ? 'empty' : ''
+    this.state = this.id === BoardHole.central ? 'empty' : 'peg'
   }
 
   select() {
     this.state = 'selected'
   }
 
-  setisEmpty() {
+  setEmpty() {
     this.state = 'empty'
   }
 
   setPeg() {
-    this.state = ''
+    this.state = 'peg'
   }
 
   setDestination(move: MoveT) {
@@ -153,7 +150,6 @@ const buildInitalBoardHolesState = () =>
     return new BoardHole(pos, i, holesValidMoves)
   })
 
-//PURE JS dependecy free
 export class Engine {
   holes: BoardHole[]
   validMoves = validMoves
@@ -162,14 +158,18 @@ export class Engine {
 
   constructor(sequence: string | SequenceT = '', holes = buildInitalBoardHolesState()) {
     this.holes = holes
-    this.centralHole = holes[16]
+    this.centralHole = holes[BoardHole.central]
     typeof sequence === 'string'
       ? this.runSequence(sequence)
       : (this.sequence = buildSequence(sequence))
   }
 
   get score(): number {
-    return 32 - this.sequence.length //TODO: name 32-magic-number
+    return this.holes.length - this.sequence.length - 1
+  }
+
+  isWinner(inTheMiddle = false): boolean {
+    return inTheMiddle ? !this.centralHole.isEmpty() && this.score === 1 : this.score === 1
   }
 
   runMove(m: MoveT) {
@@ -179,8 +179,8 @@ export class Engine {
     const holeTo = this.holes[to]
     if (holeFrom.possibleMoves(this.holes).includes(m)) {
       holeTo.setPeg()
-      holeMid.setisEmpty()
-      holeFrom.setisEmpty()
+      holeMid.setEmpty()
+      holeFrom.setEmpty()
       this.sequence.push(parseInt(moveIndex))
       return true
     } else {
@@ -224,7 +224,8 @@ function Board2({
     dholew = Math.floor(holew / 2),
     holeh = Math.floor(height / 7),
     dholeh = Math.floor(holeh / 2),
-    holeRadius = Math.floor(0.35 * Math.min(holew, holeh))
+    holeRadius = Math.floor(0.35 * Math.min(holew, holeh)),
+    THRESHOLD_TO_FIND_SOLUTIONS = 13
 
   const lazyEngineBuilder = () =>
     new Engine(
@@ -242,8 +243,6 @@ function Board2({
   const [solutionFinderWorker, setSolutionFinderWorker]: [Worker | undefined, any] =
     React.useState()
   const [solutionsFound, setSolutionsFound]: [any[] | undefined, any] = React.useState()
-
-  const score = engine.score //TODO: name 32-magic-number
 
   const cleanState = () => {
     engine.holes.forEach((hole) => hole.cleanState())
@@ -277,8 +276,8 @@ function Board2({
       }
       const [from, mid, to] = validMoves[mi]
       engine.holes[to].state = 'empty'
-      engine.holes[mid].state = ''
-      engine.holes[from].state = ''
+      engine.holes[mid].state = 'peg'
+      engine.holes[from].state = 'peg'
       incState()
     }
   }
@@ -335,7 +334,7 @@ function Board2({
           .attr('x', width - 21)
           .attr('y', height - 10)
           .attr('class', 'score')
-          .text(() => score.toString())
+          .text(() => engine.score.toString())
       } else {
         g.append('svg:text')
           .attr('x', '-0.5em')
@@ -348,10 +347,10 @@ function Board2({
           .attr('y', height - 30 + 'px')
           .attr('text-anchor', 'end')
           .attr('class', 'remaining')
-          .text(`Remaining ${score}`)
+          .text(`Remaining ${engine.score}`)
           .on('click', () => navigateToSequence())
 
-        console.log(`Remaining ${score}`)
+        console.log(`Remaining ${engine.score}`)
 
         svg
           .append('svg:text')
@@ -359,7 +358,7 @@ function Board2({
           .attr('y', height - 30 + 'px')
           .attr('class', 'solutions')
           .text(() =>
-            score === 1
+            engine.isWinner()
               ? 'tu é o cara!'
               : solutionsFound
               ? `There are ${solutionsFound.length} possible solutions`
@@ -407,13 +406,12 @@ function Board2({
     setSolutionFinderWorker(worker)
   }
 
-  //TODO: name 13-magic-number
   React.useEffect(() => {
-    console.log('useEffect', score)
-    if (score < 13) {
+    console.log('useEffect', engine.score)
+    if (engine.score < THRESHOLD_TO_FIND_SOLUTIONS) {
       findSolutions()
     }
-  }, [score])
+  }, [engine.score])
 
   const handleUndoKeyPress = ({ ctrlKey, metaKey, key }: KeyboardEvent) => {
     if ((ctrlKey || metaKey) && key === 'z') {
@@ -433,8 +431,8 @@ function Board2({
 
   return (
     <>
-      <p onClick={() => runSequenceAnimated('316670')}>{score}</p>
-      <p onClick={() => runSequence('6670')}>{score}</p>
+      <p onClick={() => runSequenceAnimated('316670')}>{engine.score}</p>
+      <p onClick={() => runSequence('6670')}>{engine.score}</p>
       <p>{sequence}</p>
       <svg
         // @ts-ignore

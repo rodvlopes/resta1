@@ -1,4 +1,4 @@
-jest.mock('./Util.ts')
+jest.mock('./MMUtil.ts')
 import { Engine, buildSequence, stringfySequence } from './PegSolitaire'
 
 test('buildSequence', () => {

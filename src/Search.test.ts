@@ -1,4 +1,4 @@
-jest.mock('./Util.ts')
+jest.mock('./MMUtil.ts')
 import { findSolutions, Search } from './Search'
 
 describe('Search (with a fake engine)', () => {
@@ -76,19 +76,19 @@ describe('Search the actual Engine', () => {
 
   // //took 5.203s on a macbook m1
   // test('performance check 1', () => {
-  //   solutions = findSolutions('3166707175370635475530103271494365562965')
+  //   const solutions = findSolutions('3166707175370635475530103271494365562965')
   //   expect(solutions.length).toBe(202596)
   // })
 
   // //took 13.893s on a macbook m1
   // test('performance check 1', () => {
-  //   solutions = findSolutions('31667071753706354755301032714943655629')
+  //   const solutions = findSolutions('31667071753706354755301032714943655629')
   //   expect(solutions.length).toBe(202596)
   // })
 
   // //took 738.987s on a macbook m1
   // test('performance check 2', () => {
-  //   solutions = findSolutions('316670717537063547553010327149436556')
+  //   const solutions = findSolutions('316670717537063547553010327149436556')
   //   expect(solutions.length).toBe(202596)
   // })
 })
