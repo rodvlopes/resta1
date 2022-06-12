@@ -8,22 +8,20 @@ body {
 }
 
 .App {
-  text-align: center;
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
+.App a {
   color: #61dafb;
+}
+
+.App.dark {
+  background-color: #282c34;
+  color: white;
 }
 
 svg {
@@ -33,16 +31,18 @@ svg {
 }
 
 svg text {
-fill: #ccc;
-font-size: 0.8em;
-cursor:default;
+  fill: #ccc;
+  font-size: 0.8em;
+  cursor: default;
 }
 
-svg text.score, svg text.solucoes, svg text.resetButton {
-fill: #999;
-font-size: 1em;
-  stroke : grey;
-  stroke-width : 1px;
+svg text.score,
+svg text.solucoes,
+svg text.remaining,
+svg text.resetButton {
+  font-size: 1em;
+  stroke: grey;
+  stroke-width: 1px;
 }
 
 svg text.resetButton {
@@ -50,57 +50,69 @@ svg text.resetButton {
 }
 
 svg text.resetButton:hover {
-  stroke: green;
+  stroke: #61dafb;
+}
+
+svg text.remaining {
+  cursor: pointer;
+}
+
+svg text.remaining:hover {
+  stroke: #61dafb;
 }
 
 circle {
-stroke : grey;
-stroke-width : 3px;
-fill: brown;
+  stroke: grey;
+  stroke-width: 3px;
+  fill: brown;
 }
 
 circle.selected {
-fill: #900000;
-stroke : red;
+  fill: #900000;
+  stroke: red;
 }
 
 circle.empty {
-fill: white;
+  fill: white;
 }
 
 circle.destination {
-fill: #E0FFE4;
-stroke : green;
+  fill: #E0FFE4;
+  stroke: green;
 }
 
-#simulacaoNum, #solucoesNum, #inicioTempo, #fimTempo {
-margin-right: 30px;
+#simulacaoNum,
+#solucoesNum,
+#inicioTempo,
+#fimTempo {
+  margin-right: 30px;
 }
 
 div.bar {
-float: left;
-letter-spacing: 5px;
-word-wrap: break-word;
-width: 0;
-position: relative;
-left: 11px;	
-top: 4px;
+  float: left;
+  letter-spacing: 5px;
+  word-wrap: break-word;
+  width: 0;
+  position: relative;
+  left: 11px;
+  top: 4px;
   line-height: 16px;
 }
 
 div.bar a {
-color: #aaa;
-text-shadow: -1px -1px #333;
-text-decoration: none;
+  color: #aaa;
+  text-shadow: -1px -1px #333;
+  text-decoration: none;
 }
 
 div.bar a:hover {
-font-weight: bold;
+  font-weight: bold;
 }
 
-.candidato, .solucao {
-float: left;
-width: 134px;
+.candidato,
+.solucao {
+  float: left;
+  width: 134px;
 }
 
 .solucao svg {
@@ -109,5 +121,10 @@ width: 134px;
 }
 
 
-#iniciaSimulacao:first-letter {text-decoration:underline}
-#terminaSimulacao:first-letter {text-decoration:underline}
+#iniciaSimulacao:first-letter {
+  text-decoration: underline
+}
+
+#terminaSimulacao:first-letter {
+  text-decoration: underline
+}

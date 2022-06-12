@@ -1,11 +1,12 @@
-import React from 'react'
 import { render, screen } from '@testing-library/react'
 import App from './App'
 
-jest.mock('./WorkerSample.ts')
+jest.mock('./Util.ts')
 
 test('renders learn react link', () => {
   render(<App />)
-  const linkElement = screen.getByText(/Peg Solitaire/i)
-  expect(linkElement).toBeInTheDocument()
+  const remainingElement = screen.getByText(/Remaining 32/)
+  const resetElement = screen.getByText(/Reset/)
+  expect(remainingElement).toBeInTheDocument()
+  expect(resetElement).toBeInTheDocument()
 })

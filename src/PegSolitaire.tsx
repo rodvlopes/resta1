@@ -1,7 +1,7 @@
 //winning sequence: "31667071753706354755301032714943655629650109164002690444362607"
-import React, { SetStateAction, useState } from 'react'
+import React from 'react'
 import useD3 from './Hooks'
-import { buildWorker } from './WorkerSample'
+import { buildWorker } from './Util'
 
 // simple react setState example: https://codepen.io/Hafoux/pen/ZEOwzdQ?editors=1010
 
@@ -21,10 +21,12 @@ var positions =
 //TODO: rename Slot/Spot to Hole
 //TODO: set a namespace
 
-declare const d3: any
+const pad2 = (i: number): string => `${i.toString()}`.padStart(2, '0')
+// const clone = (obj : any) => JSON.SON.stringify(obj)
 
 type MoveT = [from: number, mid: number, to: number, id: string]
 
+// TODO: segregate boardSlot behavior and view
 class BoardSlot {
   x: number
   y: number
@@ -36,14 +38,14 @@ class BoardSlot {
   constructor(
     { x, y }: { x: number; y: number },
     id: number,
-    slotw: number,
-    sloth: number,
-    dslotw: number,
-    dsloth: number,
-    validMoves: MoveT[]
+    validMoves: MoveT[],
+    slotw = 0,
+    sloth = 0,
+    dslotw = 0,
+    dsloth = 0
   ) {
     this.id = id
-    this.state = id == 16 ? 'empty' : '' //TODO: name 16-magic-number
+    this.state = id === 16 ? 'empty' : '' //TODO: name 16-magic-number
     this.validMoves = validMoves
     this.validMoves = validMoves
     this.refMove = null
@@ -53,15 +55,15 @@ class BoardSlot {
   }
 
   empty() {
-    return this.state == 'empty' || this.state == 'destination'
+    return this.state === 'empty' || this.state === 'destination'
   }
 
   destination() {
-    return this.state == 'destination'
+    return this.state === 'destination'
   }
 
   selected() {
-    return this.state == 'selected'
+    return this.state === 'selected'
   }
 
   cleanState() {
@@ -83,7 +85,7 @@ class BoardSlot {
   }
 
   reset() {
-    this.state = this.id == 16 ? 'empty' : ''
+    this.state = this.id === 16 ? 'empty' : ''
   }
 
   select() {
@@ -104,39 +106,22 @@ class BoardSlot {
   }
 }
 
-export class Sequence extends Array {
-  constructor(a0: string | number = '', ...args: any[]) {
-    // console.log(a0, typeof a0)
-    if (args.length == 0) {
-      super()
-      if (typeof a0 == 'number') {
-        this.push(a0)
-      } else {
-        ;(a0.match(/.{2}/g) || []).forEach((mi: string) => this.push(parseInt(mi)))
-      }
-    } else {
-      // @ts-ignore
-      super(a0, ...args)
-    }
-  }
+type SequenceT = number[]
 
-  add(mi: string | number) {
-    const toAdd = typeof mi == 'string' ? parseInt(mi) : mi
-    return new Sequence(...this, toAdd)
-  }
+export function buildSequence(seq: string | SequenceT): SequenceT {
+  const sequence =
+    typeof seq === 'string' ? (seq.match(/.{2}/g) || []).map((mi: string) => parseInt(mi)) : seq
 
-  remove(mi: string | number) {
-    const toRemove = typeof mi == 'string' ? parseInt(mi) : mi
-    return new Sequence(...[...this].filter((it) => it != toRemove))
-  }
+  sequence.toString = () => stringfySequence(sequence)
+  return sequence
+}
 
-  toString() {
-    return [...this].map((mi) => `${mi.toString()}`.padStart(2, '0')).join('')
-  }
+export function stringfySequence(seq: SequenceT): string {
+  return seq.map((mi) => pad2(mi)).join('')
 }
 
 // prettier-ignore
-const validMoves : MoveT[] = [
+const validMoves : readonly MoveT[] = Object.freeze([
   [0, 1, 2],    [0, 3, 8],    [1, 4, 9],    [2, 1, 0],    [2, 5, 10],   [3, 4, 5],
   [3, 8, 15],   [4, 9, 16],   [5, 4, 3],    [5, 10, 17],  [6, 7, 8],    [6, 13, 20],
   [7, 8, 9],    [7, 14, 21],  [8, 3, 0],    [8, 7, 6],    [8, 9, 10],   [8, 15, 22],
@@ -150,10 +135,10 @@ const validMoves : MoveT[] = [
   [24, 25, 26], [24, 29, 32], [25, 18, 11], [25, 24, 23], [26, 19, 12], [26, 25, 24],
   [27, 22, 15], [27, 28, 29], [28, 23, 16], [29, 24, 17], [29, 28, 27], [30, 27, 22],
   [30, 31, 32], [31, 28, 23], [32, 29, 24], [32, 31, 30], 
-].map((m, mi) => [m[0], m[1], m[2], `${mi}`.padStart(2, '0')]) //TS complains about ...m
+].map((m, mi) => [...m, pad2(mi)] as MoveT))
 
 // prettier-ignore
-const initialState = [
+const defaultBoardHoles = Object.freeze([
                               {x: 2, y: 0}, {x: 3, y: 0}, {x: 4, y: 0},
                               {x: 2, y: 1}, {x: 3, y: 1}, {x: 4, y: 1},
   {x: 0, y: 2}, {x: 1, y: 2}, {x: 2, y: 2}, {x: 3, y: 2}, {x: 4, y: 2}, {x: 5, y: 2}, {x: 6, y: 2},
@@ -161,7 +146,65 @@ const initialState = [
   {x: 0, y: 4}, {x: 1, y: 4}, {x: 2, y: 4}, {x: 3, y: 4}, {x: 4, y: 4}, {x: 5, y: 4}, {x: 6, y: 4},
                               {x: 2, y: 5}, {x: 3, y: 5}, {x: 4, y: 5},
                               {x: 2, y: 6}, {x: 3, y: 6}, {x: 4, y: 6},
-]
+])
+
+const buildInitalBoardHolesState = () =>
+  defaultBoardHoles.map((pos, i) => {
+    const slotValidMoves = validMoves.filter((m) => i === m[0])
+    return new BoardSlot(pos, i, slotValidMoves)
+  })
+
+//PURE JS dependecy free
+export class Engine {
+  holes: BoardSlot[]
+  validMoves = validMoves
+  centralHole: BoardSlot
+  sequence: SequenceT = buildSequence([])
+
+  constructor(sequence: string | SequenceT = '', holes = buildInitalBoardHolesState()) {
+    this.holes = holes
+    this.centralHole = holes[16]
+    typeof sequence === 'string'
+      ? this.runSequence(sequence)
+      : (this.sequence = buildSequence(sequence))
+  }
+
+  get score(): number {
+    return 32 - this.sequence.length //TODO: name 32-magic-number
+  }
+
+  runMove(m: MoveT) {
+    const [from, mid, to, moveIndex] = m
+    const slotFrom = this.holes[from]
+    const slotMid = this.holes[mid]
+    const slotTo = this.holes[to]
+    if (slotFrom.possibleMoves(this.holes).includes(m)) {
+      slotTo.setPeg()
+      slotMid.setEmpty()
+      slotFrom.setEmpty()
+      this.sequence.push(parseInt(moveIndex))
+      return true
+    } else {
+      console.log('Movement not allowed on this state: ', m.toString())
+      return false
+    }
+  }
+
+  runSequence(seq: string) {
+    buildSequence(seq).forEach((mi) => {
+      this.runMove(validMoves[mi])
+    })
+  }
+
+  reset() {
+    this.holes.forEach((hole) => hole.reset())
+    this.sequence = [] as SequenceT
+  }
+
+  get possibleMoves() {
+    return this.holes.map((hole) => hole.possibleMoves(this.holes)).flat()
+  }
+}
 
 type BoardConfigT = {
   width?: number
@@ -169,16 +212,14 @@ type BoardConfigT = {
   container?: string
   noView?: boolean
   compactView?: boolean
-  sequenceStr?: string
+  sequence?: string
 }
-
-const pad2 = (i: number): string => `${i.toString()}`.padStart(2, '0')
 
 function Board2({
   width = window.innerWidth - 6,
   height = window.innerHeight - 6,
   compactView = false,
-  sequenceStr = '',
+  sequence = '',
 }: BoardConfigT = {}) {
   const slotw = Math.floor(width / 7),
     dslotw = Math.floor(slotw / 2),
@@ -186,93 +227,163 @@ function Board2({
     dsloth = Math.floor(sloth / 2),
     spotRadius = Math.floor(0.35 * Math.min(slotw, sloth))
 
-  const [slots, setSlots] = React.useState(
-    initialState.map((pos, i) => {
-      const slotValidMoves = validMoves.filter((m) => i == m[0])
-      return new BoardSlot(pos, i, slotw, sloth, dslotw, dsloth, slotValidMoves)
-    })
-  )
-  const [sequence, setSequence] = React.useState(new Sequence())
+  const lazyEngineBuilder = () =>
+    new Engine(
+      sequence,
+      defaultBoardHoles.map((pos, i) => {
+        const slotValidMoves = validMoves.filter((m) => i === m[0])
+        return new BoardSlot(pos, i, slotValidMoves, slotw, sloth, dslotw, dsloth)
+      })
+    )
+
+  const [engine] = React.useState(lazyEngineBuilder)
+  const [stateCounter, setStateCounter] = React.useState(0)
+  const incState = () => setStateCounter((i) => ++i)
+  // const nextState = (eng: Engine) => new Engine(eng.sequence, eng.holes)
+
+  // const [initialSequence, setInitialSequence] = React.useState(sequenceStr)
   const [solutionFinderWorker, setSolutionFinderWorker]: [Worker | undefined, any] =
     React.useState()
   const [solutionsFound, setSolutionsFound]: [any[] | undefined, any] = React.useState()
 
-  // const centralHole = slots[16]
-
-  const score = 32 - sequence.length //TODO: name 32-magic-number
-
-  /**
-   * Determines the possible moves available in the current board state
-   */
-  // const possibleMoves = () : MoveT[] => {
-  //   return slots.map((spot) => spot.possibleMoves(this.slots)).flat()
-  // }
-
-  // get possibleMovesIndexes(): string[] {
-  //   return possibleMoves().map((m) => m[3])
-  // }
-
-  const runMove = React.useCallback((m: MoveT) => {
-    const [from, mid, to, moveIndex] = m
-    const slotFrom = slots[from]
-    const slotMid = slots[mid]
-    const slotTo = slots[to]
-    if (slotFrom.possibleMoves(slots).includes(m)) {
-      slotTo.setPeg()
-      slotMid.setEmpty()
-      slotFrom.setEmpty()
-      const nSeq = sequence.add(moveIndex)
-      console.log(nSeq)
-      setSequence(nSeq)
-      return true
-    } else {
-      console.log('Movement not allowed on this state: ', m.toString())
-      return false
-    }
-  }, [])
+  const score = engine.score //TODO: name 32-magic-number
 
   const cleanState = () => {
-    slots.forEach((spot) => spot.cleanState())
+    engine.holes.forEach((spot) => spot.cleanState())
   }
 
   const selectSpot = (spot: BoardSlot) => {
     spot.select()
-    spot.possibleMoves(slots).forEach((m) => slots[m[2]].setDestination(m)) //m[2] -> slotTo
-  }
-
-  const runSequence = (seq: string) => {
-    new Sequence(seq).forEach((mi) => {
-      const m = validMoves[mi]
-      runMove(m)
-    })
+    spot.possibleMoves(engine.holes).forEach((m) => engine.holes[m[2]].setDestination(m)) //m[2] -> slotTo
   }
 
   const runSequenceAnimated = (seq: string) => {
-    new Sequence(seq).forEach((mi, i) => {
+    buildSequence(seq).forEach((mi, i) => {
       setTimeout(() => {
         const m = validMoves[mi]
-        runMove(m)
+        engine.runMove(m)
+        incState()
       }, 500 * i)
     })
   }
 
+  const runSequence = (seq: string) => {
+    engine.runSequence(seq)
+    incState()
+  }
+
   const undoLastMove = () => {
-    if (sequence.length > 0) {
-      const mi = sequence.pop()
+    if (engine.sequence.length > 0) {
+      const mi = engine.sequence.pop()
+      if (mi === undefined) {
+        return
+      }
       const [from, mid, to] = validMoves[mi]
-      slots[to].state = 'empty'
-      slots[mid].state = ''
-      slots[from].state = ''
-      setSequence(sequence.remove(mi))
+      engine.holes[to].state = 'empty'
+      engine.holes[mid].state = ''
+      engine.holes[from].state = ''
+      incState()
     }
   }
 
-  const reset = React.useCallback(() => {
-    slots.forEach((slot) => slot.reset())
-    setSequence(new Sequence())
-  }, [])
+  const reset = () => {
+    engine.holes.forEach((slot) => slot.reset())
+    console.log('reset')
+    engine.reset()
+    incState()
+  }
+
+  const navigateToSequence = () => (window.location.href = `?sequence=${engine.sequence}`)
+
+  const clickSpotHandler = (_ev: PointerEvent, spot: BoardSlot) => {
+    if (spot.destination()) {
+      //run movement and remove one peg
+      if (spot.refMove) {
+        engine.runMove(spot.refMove)
+        cleanState()
+        incState() //force update
+      }
+    } else if (spot.empty()) {
+      //nothing to do
+    } else {
+      //select peg
+      cleanState()
+      selectSpot(spot)
+      incState()
+    }
+  }
+
+  const ref = useD3(
+    (svg) => {
+      svg.selectAll('*').remove()
+
+      const g = svg
+        .selectAll('g.node')
+        .data(engine.holes)
+        .enter()
+        .append('svg:g')
+        .attr('class', 'node')
+        .attr('transform', function (d: any) {
+          return 'translate(' + d.x + ',' + d.y + ')'
+        })
+        .on('click', clickSpotHandler)
+
+      g.append('svg:circle')
+        .attr('class', (spot: any) => spot.state)
+        .attr('r', spotRadius)
+
+      if (compactView) {
+        svg
+          .append('svg:text')
+          .attr('x', width - 21)
+          .attr('y', height - 10)
+          .attr('class', 'score')
+          .text(() => score.toString())
+      } else {
+        g.append('svg:text')
+          .attr('x', '-0.5em')
+          .attr('dy', '.31em')
+          .text((_d: any, i: number) => pad2(i))
+
+        svg
+          .append('svg:text')
+          .attr('x', width - 130)
+          .attr('y', height - 30 + 'px')
+          .attr('text-anchor', 'end')
+          .attr('class', 'remaining')
+          .text(`Remaining ${score}`)
+          .on('click', () => navigateToSequence())
+
+        console.log(`Remaining ${score}`)
+
+        svg
+          .append('svg:text')
+          .attr('x', 30)
+          .attr('y', height - 30 + 'px')
+          .attr('class', 'solucoes')
+          .text(() =>
+            score === 1
+              ? 'tu é o cara!'
+              : solutionsFound
+              ? `There are ${solutionsFound.length} possible solutions`
+              : ''
+          )
+
+        svg
+          .append('svg:text')
+          .attr('x', width - 130)
+          .attr('y', 30 + 'px')
+          .attr('text-anchor', 'end')
+          .attr('class', 'resetButton')
+          .text('Reset')
+          .on('click', () => reset())
+      }
+    },
+    [stateCounter, solutionsFound, compactView]
+  )
 
   const findSolutions = () => {
+    console.log('findSolutions triggered')
     if (solutionFinderWorker) {
       solutionFinderWorker.terminate()
     }
@@ -282,9 +393,9 @@ function Board2({
     worker.addEventListener(
       'message',
       (e) => {
-        if (e.data.solucoes) {
-          setSolutionsFound(e.data.solucoes)
-          console.log('Solutions found:', e.data.solucoes)
+        if (e.data.solutions) {
+          setSolutionsFound(e.data.solutions)
+          console.log('Solutions found:', e.data.solutions)
         } else {
           console.log(e.data)
         }
@@ -292,136 +403,51 @@ function Board2({
       false
     )
 
-    worker.onerror = function (event) {
-      console.error(event)
-    }
+    worker.onerror = (event) => console.error(event)
 
-    worker.postMessage({ sequenciaInicial: sequence.toString(), noCentro: true })
+    worker.postMessage({ initialSequence: stringfySequence(engine.sequence), inTheMiddle: true })
 
     setSolutionFinderWorker(worker)
   }
 
-  //TODO: define this function out of component
-  const clickSpotHandler = React.useCallback((_ev: PointerEvent, spot: BoardSlot) => {
-    if (spot.destination()) {
-      //run movement and remove one peg
-      if (spot.refMove) {
-        runMove(spot.refMove)
-        cleanState()
-        setSlots([...slots]) //force update
-      }
-    } else if (spot.empty()) {
-      //nothing to do
-    } else {
-      //select peg
-      cleanState()
-      selectSpot(spot)
-      setSlots([...slots]) //force update
+  //TODO: name 13-magic-number
+  React.useEffect(() => {
+    console.log('useEffect', score)
+    if (score < 13) {
+      findSolutions()
+    }
+  }, [score])
+
+  const handleUndoKeyPress = ({ ctrlKey, metaKey, key }: KeyboardEvent) => {
+    if ((ctrlKey || metaKey) && key === 'z') {
+      undoLastMove()
+    }
+  }
+
+  React.useEffect(() => {
+    window.addEventListener('keydown', handleUndoKeyPress)
+    return () => {
+      window.removeEventListener('keydown', handleUndoKeyPress)
     }
   }, [])
 
-  console.log('sequence', sequence.length)
-
-  const ref = useD3(
-    (svg) => {
-      console.log('sequence useD3', sequence.length)
-      const isUpdate = svg.selectAll('g.node').size() > 0
-      if (isUpdate) {
-        //update svg
-        svg
-          .selectAll('circle')
-          .data(slots)
-          .attr('class', function (d: any) {
-            return d.state
-          })
-
-        if (compactView) {
-          svg.select('.score').text(function () {
-            return score.toString()
-          })
-        } else {
-          svg.select('.score').text(function () {
-            return `Remaining ${score}`
-          })
-
-          if (score == 1) {
-            svg.select('.solucoes').text('tu é o cara!')
-          } else if (solutionsFound) {
-            svg.select('.solucoes').text(`There are ${solutionsFound.length} possible solutions`)
-          }
-        }
-      } else {
-        //create svg
-        const g = svg
-          .selectAll('g.node')
-          .data(slots)
-          .enter()
-          .append('svg:g')
-          .attr('class', 'node')
-          .attr('transform', function (d: any) {
-            return 'translate(' + d.x + ',' + d.y + ')'
-          })
-          .on('click', clickSpotHandler)
-
-        g.append('svg:circle')
-          .attr('class', (spot: any) => spot.state)
-          .attr('r', spotRadius)
-
-        if (compactView) {
-          svg
-            .append('svg:text')
-            .attr('x', width - 21)
-            .attr('y', height - 10)
-            .attr('class', 'score')
-            .text(() => score.toString())
-        } else {
-          g.append('svg:text')
-            .attr('x', '-0.5em')
-            .attr('dy', '.31em')
-            .text((_d: any, i: number) => pad2(i))
-
-          svg
-            .append('svg:text')
-            .attr('x', width - 130)
-            .attr('y', height - 30 + 'px')
-            .attr('class', 'score')
-            .text(() => `Remaining ${score}`)
-
-          svg
-            .append('svg:text')
-            .attr('x', 30)
-            .attr('y', height - 30 + 'px')
-            .attr('class', 'solucoes')
-            .text('')
-
-          svg
-            .append('svg:text')
-            .attr('x', width - 130)
-            .attr('y', 30 + 'px')
-            .attr('class', 'resetButton')
-            .text('Reset')
-            .on('click', () => reset())
-        }
-      }
-    },
-    [slots, sequence, solutionsFound, compactView]
-  )
-
-  runSequence(sequenceStr)
-  //TODO: name 13-magic-number
-  if (score < 13) {
-    findSolutions()
-  }
+  // @ts-ignore
+  window.runSequence = runSequence
 
   return (
-    <svg
-      // @ts-ignore
-      ref={ref}
-      style={{
-        height,
-        width,
-      }}
-    ></svg>
+    <>
+      <p onClick={() => runSequenceAnimated('316670')}>{score}</p>
+      <p onClick={() => runSequence('6670')}>{score}</p>
+      <p>{sequence}</p>
+      <svg
+        // @ts-ignore
+        ref={ref}
+        style={{
+          height,
+          width,
+        }}
+      ></svg>
+    </>
   )
 }
 
