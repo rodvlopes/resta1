@@ -1,4 +1,4 @@
-import { Engine } from './PegSolitaire'
+import { buildSequence, Engine } from './PegSolitaire'
 
 export function findSolutions(
   initialSequence = '',
@@ -6,12 +6,14 @@ export function findSolutions(
   maxSolutions?: number
 ): string[] {
   const boardEngine = new Engine(initialSequence)
+  const initialHolesPosition = boardEngine.holes
 
   return new Search({
     maxSolutions: maxSolutions,
     goal: (sequence: string) => {
-      boardEngine.reset()
-      boardEngine.runSequence(sequence)
+      boardEngine.holes = initialHolesPosition.map((h) => h.clone())
+      boardEngine.sequence = buildSequence(initialSequence)
+      boardEngine.runSequence(sequence.replace(initialSequence, ''))
       return boardEngine.isWinner(inTheMiddle)
     },
     getPossibleMoves: () => boardEngine.possibleMoves.map((m) => m[3]),

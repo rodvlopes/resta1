@@ -22,12 +22,14 @@ const pad2 = (i: number): string => `${i.toString()}`.padStart(2, '0')
 
 type MoveT = [from: number, mid: number, to: number, id: string]
 
+type BoardHoleStateT = 'peg' | 'empty' | 'destination' | 'selected'
+
 // TODO: segregate boardSlot behavior and view
-class BoardHole {
+export class BoardHole {
   x: number
   y: number
   id: number
-  state: 'peg' | 'empty' | 'destination' | 'selected'
+  state: BoardHoleStateT
   validMoves: MoveT[]
   refMove: MoveT | null
   static central = 16
@@ -36,14 +38,15 @@ class BoardHole {
     { x, y }: { x: number; y: number },
     id: number,
     validMoves: MoveT[],
+    state = (id === BoardHole.central ? 'empty' : 'peg') as BoardHoleStateT,
     holew = 0,
     holeh = 0,
     dholew = 0,
     dholeh = 0
   ) {
     this.id = id
-    this.state = id === BoardHole.central ? 'empty' : 'peg'
     this.validMoves = validMoves
+    this.state = state
     this.refMove = null
     //Adiciona o deslocamento para centralizar o círculo
     this.x = x * holew + dholew
@@ -100,6 +103,10 @@ class BoardHole {
     this.state = 'destination'
     this.refMove = move
   }
+
+  clone() {
+    return new BoardHole({ x: this.x, y: this.y }, this.id, this.validMoves, this.state)
+  }
 }
 
 type SequenceT = number[]
@@ -144,10 +151,11 @@ const defaultBoardHoles = Object.freeze([
                               {x: 2, y: 6}, {x: 3, y: 6}, {x: 4, y: 6},
 ])
 
+const holesValidMoves = defaultBoardHoles.map((_pos, i) => validMoves.filter((m) => i === m[0]))
+
 const buildInitalBoardHolesState = () =>
   defaultBoardHoles.map((pos, i) => {
-    const holesValidMoves = validMoves.filter((m) => i === m[0])
-    return new BoardHole(pos, i, holesValidMoves)
+    return new BoardHole(pos, i, holesValidMoves[i])
   })
 
 export class Engine {
@@ -232,7 +240,7 @@ function Board2({
       sequence,
       defaultBoardHoles.map((pos, i) => {
         const holesValidMoves = validMoves.filter((m) => i === m[0])
-        return new BoardHole(pos, i, holesValidMoves, holew, holeh, dholew, dholeh)
+        return new BoardHole(pos, i, holesValidMoves, undefined, holew, holeh, dholew, dholeh)
       })
     )
 

@@ -74,19 +74,19 @@ describe('Search the actual Engine', () => {
     expect(solutions.length).toBe(66)
   })
 
-  // //took 5.203s on a macbook m1
-  // test('performance check 1', () => {
-  //   const solutions = findSolutions('3166707175370635475530103271494365562965')
-  //   expect(solutions.length).toBe(202596)
-  // })
+  //took v1: 5.203s, v2: 4.273s on a macbook m1
+  test('performance check 1', () => {
+    const solutions = findSolutions('3166707175370635475530103271494365562965')
+    expect(solutions.length).toBe(6204)
+  })
 
-  // //took 13.893s on a macbook m1
+  // //took v1: 13.893s, v2: 11.215s on a macbook m1
   // test('performance check 1', () => {
   //   const solutions = findSolutions('31667071753706354755301032714943655629')
-  //   expect(solutions.length).toBe(202596)
+  //   expect(solutions.length).toBe(19308)
   // })
 
-  // //took 738.987s on a macbook m1
+  // //took v1: 738.987s on a macbook m1
   // test('performance check 2', () => {
   //   const solutions = findSolutions('316670717537063547553010327149436556')
   //   expect(solutions.length).toBe(202596)
