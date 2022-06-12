@@ -30,3 +30,17 @@ test('Engine possibleMoves with initialSequence (last move)', () => {
   const possibleMoves = boardEngine.possibleMoves.map((m) => m[3])
   expect(possibleMoves).toEqual(['07', '18'])
 })
+
+test('Engine runSequence', () => {
+  const boardEngine = new Engine()
+  boardEngine.runSequence('316670')
+  const emptyHoles = boardEngine.holes.filter((hole) => hole.isEmpty())
+  expect(emptyHoles.length).toBe(4)
+})
+
+test('Engine invalid sequence', () => {
+  const boardEngine = new Engine()
+  boardEngine.runSequence('22222222')
+  const emptyHoles = boardEngine.holes.filter((hole) => hole.isEmpty())
+  expect(emptyHoles.length).toBe(1)
+})

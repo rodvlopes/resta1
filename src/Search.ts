@@ -13,7 +13,7 @@ export function findSolutions(
       boardEngine.reset()
       boardEngine.runSequence(sequence)
       return inTheMiddle
-        ? !boardEngine.centralHole.empty() && boardEngine.score === 1
+        ? !boardEngine.centralHole.isEmpty() && boardEngine.score === 1
         : boardEngine.score === 1
     },
     getPossibleMoves: () => boardEngine.possibleMoves.map((m) => m[3]),

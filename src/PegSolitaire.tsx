@@ -18,7 +18,6 @@ var positions =
     33 positions
 */
 
-//TODO: rename Slot/Spot to Hole
 //TODO: set a namespace
 
 const pad2 = (i: number): string => `${i.toString()}`.padStart(2, '0')
@@ -27,7 +26,7 @@ const pad2 = (i: number): string => `${i.toString()}`.padStart(2, '0')
 type MoveT = [from: number, mid: number, to: number, id: string]
 
 // TODO: segregate boardSlot behavior and view
-class BoardSlot {
+class BoardHole {
   x: number
   y: number
   id: number
@@ -39,10 +38,10 @@ class BoardSlot {
     { x, y }: { x: number; y: number },
     id: number,
     validMoves: MoveT[],
-    slotw = 0,
-    sloth = 0,
-    dslotw = 0,
-    dsloth = 0
+    holew = 0,
+    holeh = 0,
+    dholew = 0,
+    dholeh = 0
   ) {
     this.id = id
     this.state = id === 16 ? 'empty' : '' //TODO: name 16-magic-number
@@ -50,19 +49,19 @@ class BoardSlot {
     this.validMoves = validMoves
     this.refMove = null
     //Adiciona o deslocamento para centralizar o círculo
-    this.x = x * slotw + dslotw
-    this.y = y * sloth + dsloth
+    this.x = x * holew + dholew
+    this.y = y * holeh + dholeh
   }
 
-  empty() {
+  isEmpty() {
     return this.state === 'empty' || this.state === 'destination'
   }
 
-  destination() {
+  isDestination() {
     return this.state === 'destination'
   }
 
-  selected() {
+  isSelected() {
     return this.state === 'selected'
   }
 
@@ -77,10 +76,10 @@ class BoardSlot {
     }
   }
 
-  possibleMoves(boardSlots: BoardSlot[]) {
+  possibleMoves(holes: BoardHole[]) {
     return this.validMoves.filter(
       ([from, mid, to]: MoveT) =>
-        !boardSlots[from].empty() && !boardSlots[mid].empty() && boardSlots[to].empty()
+        !holes[from].isEmpty() && !holes[mid].isEmpty() && holes[to].isEmpty()
     )
   }
 
@@ -92,7 +91,7 @@ class BoardSlot {
     this.state = 'selected'
   }
 
-  setEmpty() {
+  setisEmpty() {
     this.state = 'empty'
   }
 
@@ -150,15 +149,15 @@ const defaultBoardHoles = Object.freeze([
 
 const buildInitalBoardHolesState = () =>
   defaultBoardHoles.map((pos, i) => {
-    const slotValidMoves = validMoves.filter((m) => i === m[0])
-    return new BoardSlot(pos, i, slotValidMoves)
+    const holesValidMoves = validMoves.filter((m) => i === m[0])
+    return new BoardHole(pos, i, holesValidMoves)
   })
 
 //PURE JS dependecy free
 export class Engine {
-  holes: BoardSlot[]
+  holes: BoardHole[]
   validMoves = validMoves
-  centralHole: BoardSlot
+  centralHole: BoardHole
   sequence: SequenceT = buildSequence([])
 
   constructor(sequence: string | SequenceT = '', holes = buildInitalBoardHolesState()) {
@@ -175,13 +174,13 @@ export class Engine {
 
   runMove(m: MoveT) {
     const [from, mid, to, moveIndex] = m
-    const slotFrom = this.holes[from]
-    const slotMid = this.holes[mid]
-    const slotTo = this.holes[to]
-    if (slotFrom.possibleMoves(this.holes).includes(m)) {
-      slotTo.setPeg()
-      slotMid.setEmpty()
-      slotFrom.setEmpty()
+    const holeFrom = this.holes[from]
+    const holeMid = this.holes[mid]
+    const holeTo = this.holes[to]
+    if (holeFrom.possibleMoves(this.holes).includes(m)) {
+      holeTo.setPeg()
+      holeMid.setisEmpty()
+      holeFrom.setisEmpty()
       this.sequence.push(parseInt(moveIndex))
       return true
     } else {
@@ -221,27 +220,25 @@ function Board2({
   compactView = false,
   sequence = '',
 }: BoardConfigT = {}) {
-  const slotw = Math.floor(width / 7),
-    dslotw = Math.floor(slotw / 2),
-    sloth = Math.floor(height / 7),
-    dsloth = Math.floor(sloth / 2),
-    spotRadius = Math.floor(0.35 * Math.min(slotw, sloth))
+  const holew = Math.floor(width / 7),
+    dholew = Math.floor(holew / 2),
+    holeh = Math.floor(height / 7),
+    dholeh = Math.floor(holeh / 2),
+    holeRadius = Math.floor(0.35 * Math.min(holew, holeh))
 
   const lazyEngineBuilder = () =>
     new Engine(
       sequence,
       defaultBoardHoles.map((pos, i) => {
-        const slotValidMoves = validMoves.filter((m) => i === m[0])
-        return new BoardSlot(pos, i, slotValidMoves, slotw, sloth, dslotw, dsloth)
+        const holesValidMoves = validMoves.filter((m) => i === m[0])
+        return new BoardHole(pos, i, holesValidMoves, holew, holeh, dholew, dholeh)
       })
     )
 
   const [engine] = React.useState(lazyEngineBuilder)
+  // Engine is mutable (for performance), so React needs to rely on stateCounter to update
   const [stateCounter, setStateCounter] = React.useState(0)
   const incState = () => setStateCounter((i) => ++i)
-  // const nextState = (eng: Engine) => new Engine(eng.sequence, eng.holes)
-
-  // const [initialSequence, setInitialSequence] = React.useState(sequenceStr)
   const [solutionFinderWorker, setSolutionFinderWorker]: [Worker | undefined, any] =
     React.useState()
   const [solutionsFound, setSolutionsFound]: [any[] | undefined, any] = React.useState()
@@ -249,12 +246,12 @@ function Board2({
   const score = engine.score //TODO: name 32-magic-number
 
   const cleanState = () => {
-    engine.holes.forEach((spot) => spot.cleanState())
+    engine.holes.forEach((hole) => hole.cleanState())
   }
 
-  const selectSpot = (spot: BoardSlot) => {
-    spot.select()
-    spot.possibleMoves(engine.holes).forEach((m) => engine.holes[m[2]].setDestination(m)) //m[2] -> slotTo
+  const selectHole = (hole: BoardHole) => {
+    hole.select()
+    hole.possibleMoves(engine.holes).forEach((m) => engine.holes[m[2]].setDestination(m)) //m[2] -> holeTo
   }
 
   const runSequenceAnimated = (seq: string) => {
@@ -287,7 +284,7 @@ function Board2({
   }
 
   const reset = () => {
-    engine.holes.forEach((slot) => slot.reset())
+    engine.holes.forEach((hole) => hole.reset())
     console.log('reset')
     engine.reset()
     incState()
@@ -295,20 +292,20 @@ function Board2({
 
   const navigateToSequence = () => (window.location.href = `?sequence=${engine.sequence}`)
 
-  const clickSpotHandler = (_ev: PointerEvent, spot: BoardSlot) => {
-    if (spot.destination()) {
+  const clickHoleHandler = (_ev: PointerEvent, hole: BoardHole) => {
+    if (hole.isDestination()) {
       //run movement and remove one peg
-      if (spot.refMove) {
-        engine.runMove(spot.refMove)
+      if (hole.refMove) {
+        engine.runMove(hole.refMove)
         cleanState()
         incState() //force update
       }
-    } else if (spot.empty()) {
+    } else if (hole.isEmpty()) {
       //nothing to do
     } else {
       //select peg
       cleanState()
-      selectSpot(spot)
+      selectHole(hole)
       incState()
     }
   }
@@ -326,11 +323,11 @@ function Board2({
         .attr('transform', function (d: any) {
           return 'translate(' + d.x + ',' + d.y + ')'
         })
-        .on('click', clickSpotHandler)
+        .on('click', clickHoleHandler)
 
       g.append('svg:circle')
-        .attr('class', (spot: any) => spot.state)
-        .attr('r', spotRadius)
+        .attr('class', (hole: any) => hole.state)
+        .attr('r', holeRadius)
 
       if (compactView) {
         svg
@@ -360,7 +357,7 @@ function Board2({
           .append('svg:text')
           .attr('x', 30)
           .attr('y', height - 30 + 'px')
-          .attr('class', 'solucoes')
+          .attr('class', 'solutions')
           .text(() =>
             score === 1
               ? 'tu é o cara!'

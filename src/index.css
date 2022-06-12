@@ -37,7 +37,7 @@ svg text {
 }
 
 svg text.score,
-svg text.solucoes,
+svg text.solutions,
 svg text.remaining,
 svg text.resetButton {
   font-size: 1em;
