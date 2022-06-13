@@ -1,5 +1,5 @@
 jest.mock('./MMUtil.ts')
-import { Engine, buildSequence, stringfySequence } from './PegSolitaire'
+import { Engine, buildSequence, stringfySequence, EngineLight } from './PegSolitaire'
 
 test('buildSequence', () => {
   expect([...buildSequence('010203')]).toEqual([1, 2, 3])
@@ -43,4 +43,25 @@ test('Engine invalid sequence', () => {
   boardEngine.runSequence('22222222')
   const emptyHoles = boardEngine.holes.filter((hole) => hole.isEmpty())
   expect(emptyHoles.length).toBe(1)
+})
+
+test('EngineLight basic', () => {
+  const boardEngine = new EngineLight()
+  const newBoardEngine = boardEngine.runMove('31')
+  expect(newBoardEngine.constructor.name).toBe('EngineLight')
+  expect(newBoardEngine).not.toBe(boardEngine)
+  expect(newBoardEngine.sequence).not.toBe(boardEngine.sequence)
+  expect(newBoardEngine.holes).not.toBe(boardEngine.holes)
+  expect(newBoardEngine.score).toBe(31)
+  const possibleMoves = newBoardEngine.possibleMoves.map((m) => m[3])
+  expect(possibleMoves).toEqual(['06', '41', '66'])
+})
+
+test('EngineLight initialize with sequence', () => {
+  const boardEngine = new EngineLight(
+    '316670717537063547553010327149436556296501091640026904443626'
+  )
+  const possibleMoves = boardEngine.possibleMoves.map((m) => m[3])
+  expect(possibleMoves).toEqual(['07', '18'])
+  expect(boardEngine.score).toBe(2)
 })

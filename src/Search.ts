@@ -1,4 +1,12 @@
-import { buildSequence, Engine } from './PegSolitaire'
+import { buildSequence, Engine, EngineLight } from './PegSolitaire'
+
+export function findSolutionsLight(
+  initialSequence = '',
+  inTheMiddle = false,
+  maxSolutions?: number
+): string[] {
+  return depthSearch(new EngineLight(initialSequence), inTheMiddle, maxSolutions)
+}
 
 export function findSolutions(
   initialSequence = '',
@@ -60,4 +68,34 @@ export class Search implements SearchI {
 
     return this.solutionsFound
   }
+}
+
+export function depthSearch(
+  initialEngine: EngineLight,
+  inTheMiddle = false,
+  maxSolutions?: number
+): string[] {
+  const solutionsFound: string[] = []
+
+  const execute = (engine: EngineLight) => {
+    const movestack: string[] = engine.possibleMoves.map((m) => m[3])
+    // console.log(initialSequence, movestack)
+    while (movestack.length > 0) {
+      if (maxSolutions && solutionsFound.length >= maxSolutions) {
+        break
+      }
+
+      const mi = movestack.pop()
+      const newEngine = engine.runMove(mi || '')
+      if (newEngine.isWinner(inTheMiddle)) {
+        solutionsFound.push(newEngine.sequence.toString())
+      } else {
+        execute(newEngine)
+      }
+    }
+  }
+
+  execute(initialEngine)
+
+  return solutionsFound
 }

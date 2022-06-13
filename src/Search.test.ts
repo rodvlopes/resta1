@@ -1,5 +1,5 @@
 jest.mock('./MMUtil.ts')
-import { findSolutions, Search } from './Search'
+import { findSolutions, findSolutionsLight, Search } from './Search'
 
 describe('Search (with a fake engine)', () => {
   const engineStub = {
@@ -74,21 +74,21 @@ describe('Search the actual Engine', () => {
     expect(solutions.length).toBe(66)
   })
 
-  //took v1: 5.203s, v2: 4.273s on a macbook m1
+  //took v1: 5.203s, v2: 4.273s, v3: 1.703 s on a macbook m1
   test('performance check 1', () => {
-    const solutions = findSolutions('3166707175370635475530103271494365562965')
+    const solutions = findSolutionsLight('3166707175370635475530103271494365562965')
     expect(solutions.length).toBe(6204)
   })
 
-  // //took v1: 13.893s, v2: 11.215s on a macbook m1
-  // test('performance check 1', () => {
-  //   const solutions = findSolutions('31667071753706354755301032714943655629')
+  //took v1: 13.893s, v2: 11.215s, v3: 3.633s on a macbook m1
+  // test('performance check 2', () => {
+  //   const solutions = findSolutionsLight('31667071753706354755301032714943655629')
   //   expect(solutions.length).toBe(19308)
   // })
 
-  // //took v1: 738.987s on a macbook m1
-  // test('performance check 2', () => {
-  //   const solutions = findSolutions('316670717537063547553010327149436556')
-  //   expect(solutions.length).toBe(202596)
+  // // took v1: 34.987s, v3: 9.648s on a macbook m1
+  // test('performance check 3', () => {
+  //   const solutions = findSolutionsLight('316670717537063547553010327149436556')
+  //   expect(solutions.length).toBe(45934)
   // })
 })

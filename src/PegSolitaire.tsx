@@ -213,6 +213,86 @@ export class Engine {
   }
 }
 
+const holePossibleMoves = (holeId: number, holes: number[]) => {
+  return holesValidMoves[holeId].filter(
+    ([from, mid, to]: MoveT) => holes[from] === 1 && holes[mid] === 1 && holes[to] === 0
+  )
+}
+
+type HoleLightT = (0 | 1)[]
+
+export class EngineLight {
+  holes: HoleLightT
+  sequence: SequenceT = buildSequence([])
+
+  constructor(
+    sequence: string | SequenceT = '',
+    holes: HoleLightT = [
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1,
+    ]
+  ) {
+    this.holes = holes
+    typeof sequence === 'string'
+      ? this.initializeSequence(sequence)
+      : (this.sequence = buildSequence(sequence))
+  }
+
+  get centralHole() {
+    return this.holes[BoardHole.central]
+  }
+
+  get score(): number {
+    return this.holes.length - this.sequence.length - 1
+  }
+
+  isWinner(inTheMiddle = false): boolean {
+    return inTheMiddle ? this.centralHole == 0 && this.score === 1 : this.score === 1
+  }
+
+  runMove(m: MoveT | string): EngineLight {
+    m = typeof m === 'string' ? validMoves[parseInt(m)] : m
+    const [from, mid, to, moveIndex] = m
+    if (holePossibleMoves(from, this.holes).includes(m)) {
+      const newHoles = [...this.holes]
+      newHoles[to] = 1
+      newHoles[mid] = 0
+      newHoles[from] = 0
+      const newSequence = [...this.sequence, parseInt(moveIndex)]
+      return new EngineLight(newSequence, newHoles)
+    } else {
+      console.log('Movement not allowed on this state: ', m.toString())
+      return this
+    }
+  }
+
+  private initializeSequence(seq: string) {
+    buildSequence(seq).forEach((mi) => {
+      const m = validMoves[mi]
+      const [from, mid, to, moveIndex] = m
+      if (holePossibleMoves(from, this.holes).includes(m)) {
+        this.holes[to] = 1
+        this.holes[mid] = 0
+        this.holes[from] = 0
+        this.sequence.push(parseInt(moveIndex))
+      } else {
+        console.log('Movement not allowed on this state: ', m.toString())
+      }
+    })
+  }
+
+  runSequence(seq: string) {
+    return buildSequence(seq).reduce(
+      (engine: EngineLight, mi) => engine.runMove(validMoves[mi]),
+      this
+    )
+  }
+
+  get possibleMoves() {
+    return this.holes.map((_hole, holeId) => holePossibleMoves(holeId, this.holes)).flat()
+  }
+}
+
 type BoardConfigT = {
   width?: number
   height?: number
@@ -239,8 +319,7 @@ function Board2({
     new Engine(
       sequence,
       defaultBoardHoles.map((pos, i) => {
-        const holesValidMoves = validMoves.filter((m) => i === m[0])
-        return new BoardHole(pos, i, holesValidMoves, undefined, holew, holeh, dholew, dholeh)
+        return new BoardHole(pos, i, holesValidMoves[i], undefined, holew, holeh, dholew, dholeh)
       })
     )
 
