@@ -39,17 +39,20 @@ svg text {
 svg text.score,
 svg text.solutions,
 svg text.remaining,
+svg text.undoButton,
 svg text.resetButton {
   font-size: 1em;
   stroke: grey;
   stroke-width: 1px;
 }
 
-svg text.resetButton {
+svg text.resetButton,
+svg text.undoButton {
   cursor: pointer;
 }
 
-svg text.resetButton:hover {
+svg text.resetButton:hover,
+svg text.undoButton:hover {
   stroke: #61dafb;
 }
 

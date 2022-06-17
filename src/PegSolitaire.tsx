@@ -21,14 +21,16 @@ type MoveT = [from: number, mid: number, to: number, id: string]
 type BoardHoleStateT = null | 'peg' | 'empty' | 'destination' | 'selected'
 
 export class BoardHoleView {
-  x: number
-  y: number
+  xInitial: number
+  yInitial: number
+  x!: number
+  y!: number
   id: number
-  peg: PegT
+  peg!: PegT
   selected: BoardHoleStateT
   validMoves: MoveT[]
   refMove: MoveT | null
-  holeRadius: number
+  holeRadius!: number
   static central = 16
 
   constructor(
@@ -40,21 +42,13 @@ export class BoardHoleView {
     width = 0,
     height = 0
   ) {
-    const holew = Math.floor(width / 7),
-      dholew = Math.floor(holew / 2),
-      holeh = Math.floor(height / 7),
-      dholeh = Math.floor(holeh / 2),
-      holeRadius = Math.floor(0.35 * Math.min(holew, holeh))
-
+    this.xInitial = x
+    this.yInitial = y
+    this.update(peg, width, height)
     this.id = id
     this.validMoves = validMoves
-    this.peg = peg
     this.selected = selected
     this.refMove = null
-    //Adiciona o deslocamento para centralizar o círculo
-    this.x = x * holew + dholew
-    this.y = y * holeh + dholeh
-    this.holeRadius = holeRadius
   }
 
   get state(): BoardHoleStateT {
@@ -87,6 +81,21 @@ export class BoardHoleView {
     this.selected = 'destination'
     this.refMove = move
     return this
+  }
+
+  update(peg: PegT, width: number, height: number) {
+    const holew = Math.floor(width / 7),
+      dholew = Math.floor(holew / 2),
+      holeh = Math.floor(height / 7),
+      dholeh = Math.floor(holeh / 2),
+      holeRadius = Math.floor(0.35 * Math.min(holew, holeh))
+
+    this.peg = peg
+
+    //Adiciona o deslocamento para centralizar o círculo
+    this.x = this.xInitial * holew + dholew
+    this.y = this.yInitial * holeh + dholeh
+    this.holeRadius = holeRadius
   }
 }
 
@@ -242,8 +251,8 @@ type BoardConfigT = {
 }
 
 function Board({
-  width = window.innerWidth - 6,
-  height = window.innerHeight - 6,
+  width = 100,
+  height = 100,
   compactView = false,
   sequence = '',
 }: BoardConfigT = {}) {
@@ -251,8 +260,8 @@ function Board({
 
   const [engine, setEngine] = React.useState(lazyEngineBuilder(sequence))
   const [holes, setHoles] = React.useState(lazyHolesBuilder(engine, width, height))
-  holes.forEach((h, i) => {
-    h.peg = engine.holes[i]
+  holes.forEach((hole, i) => {
+    hole.update(engine.holes[i], width, height)
   })
 
   const [solutionFinderWorker, setSolutionFinderWorker]: [Worker | undefined, any] =
@@ -307,6 +316,7 @@ function Board({
 
   const ref = useD3(
     (svg) => {
+      console.log('Render D3')
       svg.selectAll('*').remove()
 
       const g = svg
@@ -339,8 +349,8 @@ function Board({
 
         svg
           .append('svg:text')
-          .attr('x', width - 130)
-          .attr('y', height - 30 + 'px')
+          .attr('x', width - 0.02 * width)
+          .attr('y', height - 30)
           .attr('text-anchor', 'end')
           .attr('class', 'remaining')
           .text(`Remaining ${engine.score}`)
@@ -350,28 +360,40 @@ function Board({
 
         svg
           .append('svg:text')
-          .attr('x', 30)
-          .attr('y', height - 30 + 'px')
+          .attr('x', 0.02 * width)
+          .attr('y', height - 30)
           .attr('class', 'solutions')
           .text(() =>
             engine.isWinner()
-              ? 'You are the one!'
+              ? width < 800
+                ? 'Wow!!!'
+                : 'You are the one!'
               : solutionsFound
-              ? `There are ${solutionsFound.length} possible solutions.`
+              ? width < 800
+                ? `${solutionsFound.length} solutions`
+                : `There are ${solutionsFound.length} possible solutions.`
               : ''
           )
 
         svg
           .append('svg:text')
-          .attr('x', width - 130)
-          .attr('y', 30 + 'px')
+          .attr('x', 0.02 * width)
+          .attr('y', 30)
+          .attr('class', 'undoButton')
+          .text('Undo')
+          .on('click', () => undoLastMove())
+
+        svg
+          .append('svg:text')
+          .attr('x', width - 0.02 * width)
+          .attr('y', 30)
           .attr('text-anchor', 'end')
           .attr('class', 'resetButton')
           .text('Reset')
           .on('click', () => reset())
       }
     },
-    [engine, holes, solutionsFound, compactView]
+    [engine, holes, solutionsFound]
   )
 
   const receiveMessageFromFinder = React.useCallback((e: MessageEvent) => {
