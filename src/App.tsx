@@ -1,13 +1,13 @@
-import React from 'react'
-import Board2 from './PegSolitaire'
+import Board from './PegSolitaire'
 import { userPrefesDark } from './MMUtil'
 
 function App() {
   const className = userPrefesDark() ? 'App dark' : 'App'
+  const sequence = new URLSearchParams(window.location.search).get('sequence') || ''
 
   return (
     <div className={className}>
-      <Board2 sequence={new URLSearchParams(document.location.search).get('sequence') || ''} />
+      <Board sequence={sequence} />
     </div>
   )
 }

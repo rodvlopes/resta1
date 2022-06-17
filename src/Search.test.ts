@@ -1,64 +1,5 @@
 jest.mock('./MMUtil.ts')
-import { findSolutions, findSolutionsLight, Search } from './Search'
-
-describe('Search (with a fake engine)', () => {
-  const engineStub = {
-    seq: '',
-  }
-
-  let solutions
-
-  const getPossibleMoves = () => {
-    return engineStub.seq === ''
-      ? ['01', '02', '03']
-      : engineStub.seq.endsWith('03')
-      ? ['01', '02']
-      : engineStub.seq.endsWith('02')
-      ? ['01']
-      : []
-  }
-
-  beforeEach(() => {
-    engineStub.seq = ''
-  })
-
-  test('check a single solution was found', () => {
-    solutions = new Search({
-      goal: (sequence: string) => {
-        engineStub.seq = sequence
-        return sequence === '030201'
-      },
-      getPossibleMoves,
-    }).execute()
-
-    expect(solutions).toEqual(['030201'])
-  })
-
-  test('check it stops when maxSolutions is hit', () => {
-    solutions = new Search({
-      goal: (sequence: string) => {
-        engineStub.seq = sequence
-        return sequence !== ''
-      },
-      getPossibleMoves,
-    }).execute()
-
-    expect(solutions).toEqual(['03', '02', '01']) //three solutions found!
-
-    engineStub.seq = ''
-
-    solutions = new Search({
-      goal: (sequence: string) => {
-        engineStub.seq = sequence
-        return sequence !== ''
-      },
-      getPossibleMoves,
-      maxSolutions: 1,
-    }).execute()
-
-    expect(solutions).toEqual(['03']) // only one found because it was limited to 1
-  })
-})
+import { findSolutions } from './Search'
 
 describe('Search the actual Engine', () => {
   test('check it finds a real solution when it is close to the end', () => {
@@ -76,7 +17,7 @@ describe('Search the actual Engine', () => {
 
   //took v1: 5.203s, v2: 4.273s, v3: 1.703 s on a macbook m1
   test('performance check 1', () => {
-    const solutions = findSolutionsLight('3166707175370635475530103271494365562965')
+    const solutions = findSolutions('3166707175370635475530103271494365562965')
     expect(solutions.length).toBe(6204)
   })
 
@@ -91,4 +32,10 @@ describe('Search the actual Engine', () => {
   //   const solutions = findSolutionsLight('316670717537063547553010327149436556')
   //   expect(solutions.length).toBe(45934)
   // })
+
+  // took v3: 1.448s on a macbook m1
+  test('performance check 3 - 1 solution limit', () => {
+    const solutions = findSolutions('316670717537063547553010327149436556', false, 1)
+    expect(solutions.length).toBe(1)
+  })
 })

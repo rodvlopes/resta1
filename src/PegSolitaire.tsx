@@ -1,9 +1,6 @@
-//winning sequence: "31667071753706354755301032714943655629650109164002690444362607"
 import React from 'react'
 import useD3 from './Hooks'
 import { buildWorker } from './MMUtil'
-
-// simple react setState example: https://codepen.io/Hafoux/pen/ZEOwzdQ?editors=1010
 
 /*
 var positions = 
@@ -21,36 +18,47 @@ var positions =
 const pad2 = (i: number): string => `${i.toString()}`.padStart(2, '0')
 
 type MoveT = [from: number, mid: number, to: number, id: string]
+type BoardHoleStateT = null | 'peg' | 'empty' | 'destination' | 'selected'
 
-type BoardHoleStateT = 'peg' | 'empty' | 'destination' | 'selected'
-
-// TODO: segregate boardSlot behavior and view
-export class BoardHole {
+export class BoardHoleView {
   x: number
   y: number
   id: number
-  state: BoardHoleStateT
+  peg: PegT
+  selected: BoardHoleStateT
   validMoves: MoveT[]
   refMove: MoveT | null
+  holeRadius: number
   static central = 16
 
   constructor(
     { x, y }: { x: number; y: number },
     id: number,
     validMoves: MoveT[],
-    state = (id === BoardHole.central ? 'empty' : 'peg') as BoardHoleStateT,
-    holew = 0,
-    holeh = 0,
-    dholew = 0,
-    dholeh = 0
+    peg: PegT,
+    selected: BoardHoleStateT = null,
+    width = 0,
+    height = 0
   ) {
+    const holew = Math.floor(width / 7),
+      dholew = Math.floor(holew / 2),
+      holeh = Math.floor(height / 7),
+      dholeh = Math.floor(holeh / 2),
+      holeRadius = Math.floor(0.35 * Math.min(holew, holeh))
+
     this.id = id
     this.validMoves = validMoves
-    this.state = state
+    this.peg = peg
+    this.selected = selected
     this.refMove = null
     //Adiciona o deslocamento para centralizar o círculo
     this.x = x * holew + dholew
     this.y = y * holeh + dholeh
+    this.holeRadius = holeRadius
+  }
+
+  get state(): BoardHoleStateT {
+    return this.selected ? this.selected : this.peg ? 'peg' : 'empty'
   }
 
   isEmpty() {
@@ -65,47 +73,20 @@ export class BoardHole {
     return this.state === 'selected'
   }
 
-  cleanState() {
-    switch (this.state) {
-      case 'selected':
-        this.state = 'peg'
-        break
-      case 'destination':
-        this.state = 'empty'
-        break
-    }
-  }
-
-  possibleMoves(holes: BoardHole[]) {
-    return this.validMoves.filter(
-      ([from, mid, to]: MoveT) =>
-        !holes[from].isEmpty() && !holes[mid].isEmpty() && holes[to].isEmpty()
-    )
-  }
-
-  reset() {
-    this.state = this.id === BoardHole.central ? 'empty' : 'peg'
+  cleanSelection() {
+    this.selected = null
+    return this
   }
 
   select() {
-    this.state = 'selected'
-  }
-
-  setEmpty() {
-    this.state = 'empty'
-  }
-
-  setPeg() {
-    this.state = 'peg'
+    this.selected = 'selected'
+    return this
   }
 
   setDestination(move: MoveT) {
-    this.state = 'destination'
+    this.selected = 'destination'
     this.refMove = move
-  }
-
-  clone() {
-    return new BoardHole({ x: this.x, y: this.y }, this.id, this.validMoves, this.state)
+    return this
   }
 }
 
@@ -141,7 +122,7 @@ const validMoves : readonly MoveT[] = Object.freeze([
 ].map((m, mi) => [...m, pad2(mi)] as MoveT))
 
 // prettier-ignore
-const defaultBoardHoles = Object.freeze([
+const boardHolesViewPositions = Object.freeze([
                               {x: 2, y: 0}, {x: 3, y: 0}, {x: 4, y: 0},
                               {x: 2, y: 1}, {x: 3, y: 1}, {x: 4, y: 1},
   {x: 0, y: 2}, {x: 1, y: 2}, {x: 2, y: 2}, {x: 3, y: 2}, {x: 4, y: 2}, {x: 5, y: 2}, {x: 6, y: 2},
@@ -151,67 +132,9 @@ const defaultBoardHoles = Object.freeze([
                               {x: 2, y: 6}, {x: 3, y: 6}, {x: 4, y: 6},
 ])
 
-const holesValidMoves = defaultBoardHoles.map((_pos, i) => validMoves.filter((m) => i === m[0]))
-
-const buildInitalBoardHolesState = () =>
-  defaultBoardHoles.map((pos, i) => {
-    return new BoardHole(pos, i, holesValidMoves[i])
-  })
-
-export class Engine {
-  holes: BoardHole[]
-  validMoves = validMoves
-  centralHole: BoardHole
-  sequence: SequenceT = buildSequence([])
-
-  constructor(sequence: string | SequenceT = '', holes = buildInitalBoardHolesState()) {
-    this.holes = holes
-    this.centralHole = holes[BoardHole.central]
-    typeof sequence === 'string'
-      ? this.runSequence(sequence)
-      : (this.sequence = buildSequence(sequence))
-  }
-
-  get score(): number {
-    return this.holes.length - this.sequence.length - 1
-  }
-
-  isWinner(inTheMiddle = false): boolean {
-    return inTheMiddle ? !this.centralHole.isEmpty() && this.score === 1 : this.score === 1
-  }
-
-  runMove(m: MoveT) {
-    const [from, mid, to, moveIndex] = m
-    const holeFrom = this.holes[from]
-    const holeMid = this.holes[mid]
-    const holeTo = this.holes[to]
-    if (holeFrom.possibleMoves(this.holes).includes(m)) {
-      holeTo.setPeg()
-      holeMid.setEmpty()
-      holeFrom.setEmpty()
-      this.sequence.push(parseInt(moveIndex))
-      return true
-    } else {
-      console.log('Movement not allowed on this state: ', m.toString())
-      return false
-    }
-  }
-
-  runSequence(seq: string) {
-    buildSequence(seq).forEach((mi) => {
-      this.runMove(validMoves[mi])
-    })
-  }
-
-  reset() {
-    this.holes.forEach((hole) => hole.reset())
-    this.sequence = [] as SequenceT
-  }
-
-  get possibleMoves() {
-    return this.holes.map((hole) => hole.possibleMoves(this.holes)).flat()
-  }
-}
+const holesValidMoves = boardHolesViewPositions.map((_pos, i) =>
+  validMoves.filter((m) => i === m[0])
+)
 
 const holePossibleMoves = (holeId: number, holes: number[]) => {
   return holesValidMoves[holeId].filter(
@@ -219,18 +142,16 @@ const holePossibleMoves = (holeId: number, holes: number[]) => {
   )
 }
 
-type HoleLightT = (0 | 1)[]
+type PegT = 0 | 1
 
-export class EngineLight {
-  holes: HoleLightT
+export class Engine {
+  holes: PegT[]
   sequence: SequenceT = buildSequence([])
 
   constructor(
     sequence: string | SequenceT = '',
-    holes: HoleLightT = [
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1,
-    ]
+    // prettier-ignore
+    holes: PegT[] = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
   ) {
     this.holes = holes
     typeof sequence === 'string'
@@ -239,7 +160,7 @@ export class EngineLight {
   }
 
   get centralHole() {
-    return this.holes[BoardHole.central]
+    return this.holes[BoardHoleView.central]
   }
 
   get score(): number {
@@ -247,10 +168,10 @@ export class EngineLight {
   }
 
   isWinner(inTheMiddle = false): boolean {
-    return inTheMiddle ? this.centralHole == 0 && this.score === 1 : this.score === 1
+    return inTheMiddle ? this.centralHole === 0 && this.score === 1 : this.score === 1
   }
 
-  runMove(m: MoveT | string): EngineLight {
+  runMove(m: MoveT | string): Engine {
     m = typeof m === 'string' ? validMoves[parseInt(m)] : m
     const [from, mid, to, moveIndex] = m
     if (holePossibleMoves(from, this.holes).includes(m)) {
@@ -259,13 +180,14 @@ export class EngineLight {
       newHoles[mid] = 0
       newHoles[from] = 0
       const newSequence = [...this.sequence, parseInt(moveIndex)]
-      return new EngineLight(newSequence, newHoles)
+      return new Engine(newSequence, newHoles)
     } else {
       console.log('Movement not allowed on this state: ', m.toString())
       return this
     }
   }
 
+  //Mutable
   private initializeSequence(seq: string) {
     buildSequence(seq).forEach((mi) => {
       const m = validMoves[mi]
@@ -281,17 +203,34 @@ export class EngineLight {
     })
   }
 
-  runSequence(seq: string) {
-    return buildSequence(seq).reduce(
-      (engine: EngineLight, mi) => engine.runMove(validMoves[mi]),
-      this
-    )
-  }
-
   get possibleMoves() {
     return this.holes.map((_hole, holeId) => holePossibleMoves(holeId, this.holes)).flat()
   }
+
+  undoLastMove(): Engine {
+    if (this.sequence.length > 0) {
+      const newSequence = [...this.sequence]
+      const mi = newSequence.pop()
+      if (mi === undefined) {
+        return this
+      }
+      const [from, mid, to] = validMoves[mi]
+      const newHoles = [...this.holes]
+      newHoles[to] = 0
+      newHoles[mid] = 1
+      newHoles[from] = 1
+      return new Engine(newSequence, newHoles)
+    }
+    return this
+  }
 }
+
+const lazyEngineBuilder = (sequence: string) => () => new Engine(sequence)
+
+const lazyHolesBuilder = (engine: Engine, width: number, height: number) => () =>
+  boardHolesViewPositions.map(
+    (pos, i) => new BoardHoleView(pos, i, holesValidMoves[i], engine.holes[i], null, width, height)
+  )
 
 type BoardConfigT = {
   width?: number
@@ -302,97 +241,67 @@ type BoardConfigT = {
   sequence?: string
 }
 
-function Board2({
+function Board({
   width = window.innerWidth - 6,
   height = window.innerHeight - 6,
   compactView = false,
   sequence = '',
 }: BoardConfigT = {}) {
-  const holew = Math.floor(width / 7),
-    dholew = Math.floor(holew / 2),
-    holeh = Math.floor(height / 7),
-    dholeh = Math.floor(holeh / 2),
-    holeRadius = Math.floor(0.35 * Math.min(holew, holeh)),
-    THRESHOLD_TO_FIND_SOLUTIONS = 13
+  const THRESHOLD_TO_FIND_SOLUTIONS = 14
 
-  const lazyEngineBuilder = () =>
-    new Engine(
-      sequence,
-      defaultBoardHoles.map((pos, i) => {
-        return new BoardHole(pos, i, holesValidMoves[i], undefined, holew, holeh, dholew, dholeh)
-      })
-    )
+  const [engine, setEngine] = React.useState(lazyEngineBuilder(sequence))
+  const [holes, setHoles] = React.useState(lazyHolesBuilder(engine, width, height))
+  holes.forEach((h, i) => {
+    h.peg = engine.holes[i]
+  })
 
-  const [engine] = React.useState(lazyEngineBuilder)
-  // Engine is mutable (for performance), so React needs to rely on stateCounter to update
-  const [stateCounter, setStateCounter] = React.useState(0)
-  const incState = () => setStateCounter((i) => ++i)
   const [solutionFinderWorker, setSolutionFinderWorker]: [Worker | undefined, any] =
     React.useState()
   const [solutionsFound, setSolutionsFound]: [any[] | undefined, any] = React.useState()
 
-  const cleanState = () => {
-    engine.holes.forEach((hole) => hole.cleanState())
+  const cleanSelection = () => {
+    setHoles(holes.map((h) => h.cleanSelection()))
   }
 
-  const selectHole = (hole: BoardHole) => {
+  const selectHole = (hole: BoardHoleView) => {
     hole.select()
-    hole.possibleMoves(engine.holes).forEach((m) => engine.holes[m[2]].setDestination(m)) //m[2] -> holeTo
+    holePossibleMoves(hole.id, engine.holes).forEach((m) => holes[m[2]].setDestination(m)) //m[2] -> holeTo
+    setHoles([...holes])
   }
 
   const runSequenceAnimated = (seq: string) => {
     buildSequence(seq).forEach((mi, i) => {
       setTimeout(() => {
         const m = validMoves[mi]
-        engine.runMove(m)
-        incState()
+        setEngine(engine.runMove(m))
       }, 500 * i)
     })
   }
 
   const runSequence = (seq: string) => {
-    engine.runSequence(seq)
-    incState()
-  }
-
-  const undoLastMove = () => {
-    if (engine.sequence.length > 0) {
-      const mi = engine.sequence.pop()
-      if (mi === undefined) {
-        return
-      }
-      const [from, mid, to] = validMoves[mi]
-      engine.holes[to].state = 'empty'
-      engine.holes[mid].state = 'peg'
-      engine.holes[from].state = 'peg'
-      incState()
-    }
+    setEngine(new Engine(seq))
   }
 
   const reset = () => {
-    engine.holes.forEach((hole) => hole.reset())
     console.log('reset')
-    engine.reset()
-    incState()
+    setEngine(new Engine())
   }
 
   const navigateToSequence = () => (window.location.href = `?sequence=${engine.sequence}`)
 
-  const clickHoleHandler = (_ev: PointerEvent, hole: BoardHole) => {
+  const clickHoleHandler = (_ev: PointerEvent, hole: BoardHoleView) => {
     if (hole.isDestination()) {
       //run movement and remove one peg
       if (hole.refMove) {
-        engine.runMove(hole.refMove)
-        cleanState()
-        incState() //force update
+        cleanSelection()
+        setEngine(engine.runMove(hole.refMove))
       }
     } else if (hole.isEmpty()) {
       //nothing to do
     } else {
       //select peg
-      cleanState()
+      cleanSelection()
       selectHole(hole)
-      incState()
     }
   }
 
@@ -402,7 +311,7 @@ function Board2({
 
       const g = svg
         .selectAll('g.node')
-        .data(engine.holes)
+        .data(holes)
         .enter()
         .append('svg:g')
         .attr('class', 'node')
@@ -412,8 +321,8 @@ function Board2({
         .on('click', clickHoleHandler)
 
       g.append('svg:circle')
-        .attr('class', (hole: any) => hole.state)
-        .attr('r', holeRadius)
+        .attr('class', (hole: BoardHoleView) => hole.state)
+        .attr('r', (hole: BoardHoleView) => hole.holeRadius)
 
       if (compactView) {
         svg
@@ -446,9 +355,9 @@ function Board2({
           .attr('class', 'solutions')
           .text(() =>
             engine.isWinner()
-              ? 'tu é o cara!'
+              ? 'You are the one!'
               : solutionsFound
-              ? `There are ${solutionsFound.length} possible solutions`
+              ? `There are ${solutionsFound.length} possible solutions.`
               : ''
           )
 
@@ -462,33 +371,35 @@ function Board2({
           .on('click', () => reset())
       }
     },
-    [stateCounter, solutionsFound, compactView]
+    [engine, holes, solutionsFound, compactView]
   )
+
+  const receiveMessageFromFinder = React.useCallback((e: MessageEvent) => {
+    if (e.data.solutions) {
+      setSolutionsFound(e.data.solutions)
+      console.log('Solutions found:', e.data.solutions)
+    } else {
+      console.log(e.data)
+    }
+  }, [])
 
   const findSolutions = () => {
     console.log('findSolutions triggered')
     if (solutionFinderWorker) {
+      solutionFinderWorker.removeEventListener('message', receiveMessageFromFinder, false)
       solutionFinderWorker.terminate()
     }
 
     const worker = buildWorker()
-
-    worker.addEventListener(
-      'message',
-      (e) => {
-        if (e.data.solutions) {
-          setSolutionsFound(e.data.solutions)
-          console.log('Solutions found:', e.data.solutions)
-        } else {
-          console.log(e.data)
-        }
-      },
-      false
-    )
+    worker.addEventListener('message', receiveMessageFromFinder, false)
 
     worker.onerror = (event) => console.error(event)
 
-    worker.postMessage({ initialSequence: stringfySequence(engine.sequence), inTheMiddle: true })
+    worker.postMessage({
+      initialSequence: stringfySequence(engine.sequence),
+      inTheMiddle: false,
+      // maxSolutions: 1,
+    })
 
     setSolutionFinderWorker(worker)
   }
@@ -497,8 +408,14 @@ function Board2({
     console.log('useEffect', engine.score)
     if (engine.score < THRESHOLD_TO_FIND_SOLUTIONS) {
       findSolutions()
+    } else {
+      setSolutionsFound(undefined)
     }
   }, [engine.score])
+
+  const undoLastMove = () => {
+    setEngine((engine) => engine.undoLastMove())
+  }
 
   const handleUndoKeyPress = ({ ctrlKey, metaKey, key }: KeyboardEvent) => {
     if ((ctrlKey || metaKey) && key === 'z') {
@@ -513,14 +430,10 @@ function Board2({
     }
   }, [])
 
-  // @ts-ignore
-  window.runSequence = runSequence
+  Object.assign(window, { runSequence, runSequenceAnimated })
 
   return (
     <>
-      <p onClick={() => runSequenceAnimated('316670')}>{engine.score}</p>
-      <p onClick={() => runSequence('6670')}>{engine.score}</p>
-      <p>{sequence}</p>
       <svg
         // @ts-ignore
         ref={ref}
@@ -533,4 +446,7 @@ function Board2({
   )
 }
 
-export default Board2
+export default Board
+
+// winning sequence: "31667071753706354755301032714943655629650109164002690444362607"
+// simple react setState example: https://codepen.io/Hafoux/pen/ZEOwzdQ?editors=1010
