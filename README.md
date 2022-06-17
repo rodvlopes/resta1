@@ -1,6 +1,9 @@
 Peg Solitaire Genetic Algorithm / Resta 1 Algorítimo Genético
 =============================================================
 
+:bangbang: This is app under refactoring right now. The code base is being typescripted and a new search engine is under development. Banch [v2](https://github.com/rodvlopes/resta1/tree/v2).
+
+
 Description
 -----------
 
