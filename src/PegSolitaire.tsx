@@ -423,14 +423,32 @@ function Board({
     }
   }
 
+  // play with the keyboard: press 0 1 0 9 to move the peg from hole:1 to hole:9
+  const [combo, setCombo] = React.useState([] as string[])
+
+  React.useEffect(() => {
+    if (combo.length && combo.length % 2 === 0) {
+      const hole = holes[parseInt(combo.slice(-2).join(''))]
+      clickHoleHandler(new PointerEvent('click'), hole)
+    }
+  }, [combo])
+
+  const handleMoveKeyPress = ({ ctrlKey, metaKey, key }: KeyboardEvent) => {
+    if (!(ctrlKey || metaKey) && /\d/.test(key)) {
+      setCombo((combo) => [...combo, key])
+    }
+  }
+
   React.useEffect(() => {
     window.addEventListener('keydown', handleUndoKeyPress)
+    window.addEventListener('keydown', handleMoveKeyPress)
     return () => {
       window.removeEventListener('keydown', handleUndoKeyPress)
+      window.removeEventListener('keydown', handleMoveKeyPress)
     }
   }, [])
 
-  Object.assign(window, { runSequence, runSequenceAnimated })
+  Object.assign(window, { runSequence, runSequenceAnimated }) //for experimentation
 
   return (
     <>
