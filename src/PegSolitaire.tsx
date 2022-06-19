@@ -247,6 +247,7 @@ type BoardConfigT = {
   container?: string
   noView?: boolean
   compactView?: boolean
+  showNumbers?: boolean
   sequence?: string
 }
 
@@ -254,6 +255,7 @@ function Board({
   width = 100,
   height = 100,
   compactView = false,
+  showNumbers = false,
   sequence = '',
 }: BoardConfigT = {}) {
   const THRESHOLD_TO_FIND_SOLUTIONS = 14
@@ -337,15 +339,17 @@ function Board({
       if (compactView) {
         svg
           .append('svg:text')
-          .attr('x', width - 21)
-          .attr('y', height - 10)
+          .attr('x', width - 0.1 * width)
+          .attr('y', height - 0.1 * height)
           .attr('class', 'score')
           .text(() => engine.score.toString())
       } else {
-        g.append('svg:text')
-          .attr('x', '-0.5em')
-          .attr('dy', '.31em')
-          .text((_d: any, i: number) => pad2(i))
+        if (showNumbers) {
+          g.append('svg:text')
+            .attr('x', '-0.5em')
+            .attr('dy', '.31em')
+            .text((_d: any, i: number) => pad2(i))
+        }
 
         svg
           .append('svg:text')
@@ -356,8 +360,6 @@ function Board({
           .text(`Remaining ${engine.score}`)
           .on('click', () => navigateToSequence())
 
-        console.log(`Remaining ${engine.score}`)
-
         svg
           .append('svg:text')
           .attr('x', 0.02 * width)
@@ -365,32 +367,30 @@ function Board({
           .attr('class', 'solutions')
           .text(() =>
             engine.isWinner()
-              ? width < 800
-                ? 'Wow!!!'
-                : 'You are the one!'
+              ? 'Wow!!!'
               : solutionsFound
-              ? width < 800
-                ? `${solutionsFound.length} solutions`
-                : `There are ${solutionsFound.length} possible solutions.`
+              ? `${solutionsFound.length} Solutions`
               : ''
           )
 
-        svg
-          .append('svg:text')
-          .attr('x', 0.02 * width)
-          .attr('y', 30)
-          .attr('class', 'undoButton')
-          .text('Undo')
-          .on('click', () => undoLastMove())
+        if (engine.sequence.length > 0) {
+          svg
+            .append('svg:text')
+            .attr('x', 0.02 * width)
+            .attr('y', 30)
+            .attr('class', 'undoButton')
+            .text('Undo')
+            .on('click', () => undoLastMove())
 
-        svg
-          .append('svg:text')
-          .attr('x', width - 0.02 * width)
-          .attr('y', 30)
-          .attr('text-anchor', 'end')
-          .attr('class', 'resetButton')
-          .text('Reset')
-          .on('click', () => reset())
+          svg
+            .append('svg:text')
+            .attr('x', width - 0.02 * width)
+            .attr('y', 30)
+            .attr('text-anchor', 'end')
+            .attr('class', 'resetButton')
+            .text('Reset')
+            .on('click', () => reset())
+        }
       }
     },
     [engine, holes, solutionsFound]

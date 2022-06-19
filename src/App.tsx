@@ -7,6 +7,7 @@ function App() {
   const sequence = new URLSearchParams(window.location.search).get('sequence') || ''
   const [width, setWidth] = useState(window.innerWidth - 6)
   const [height, setHeight] = useState(window.innerHeight - 6)
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
   const handleRisize = () => {
     setWidth(window.innerWidth - 6)
@@ -22,7 +23,7 @@ function App() {
 
   return (
     <div className={className}>
-      <Board sequence={sequence} width={width} height={height} />
+      <Board sequence={sequence} width={width} height={height} showNumbers={!isMobile} />
     </div>
   )
 }
