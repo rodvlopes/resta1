@@ -114,7 +114,7 @@ export function stringfySequence(seq: SequenceT): string {
 }
 
 // prettier-ignore
-const validMoves : readonly MoveT[] = Object.freeze([
+export const validMoves : readonly MoveT[] = Object.freeze([
   [0, 1, 2],    [0, 3, 8],    [1, 4, 9],    [2, 1, 0],    [2, 5, 10],   [3, 4, 5],
   [3, 8, 15],   [4, 9, 16],   [5, 4, 3],    [5, 10, 17],  [6, 7, 8],    [6, 13, 20],
   [7, 8, 9],    [7, 14, 21],  [8, 3, 0],    [8, 7, 6],    [8, 9, 10],   [8, 15, 22],
@@ -450,8 +450,11 @@ function Board({
 
   React.useEffect(() => {
     if (combo.length && combo.length % 2 === 0) {
-      const hole = holes[parseInt(combo.slice(-2).join(''))]
-      clickHoleHandler(new PointerEvent('click'), hole)
+      const holeId = parseInt(combo.slice(-2).join(''))
+      const hole = holes[holeId]
+      if (hole) {
+        clickHoleHandler(new PointerEvent('click'), hole)
+      }
     }
   }, [combo])
 
